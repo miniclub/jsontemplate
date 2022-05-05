@@ -1,0 +1,77 @@
+/// 患者リソース
+Class FHIRTemplate.Patient Extends Resource
+{
+
+/// JSON出力する際のテンプレート
+/// JSONの値の文字列に#(..プロパティ名)#または#(..#パラメータ名)#を指定することで
+/// プロパティの値をJSON形式で出力できます。
+/// プロパティの型がJSONTemplate.Baseを継承したクラスの場合、
+/// そのクラスのテンプレートからJSON出力します。
+XData Template [ MimeType = application/json ]
+{
+{
+  "resourceType": "#(..#ResourceType)#",
+  "address": [
+    {
+      "postalCode": "1600023",
+      "text": "東京都新宿区西新宿6丁目"
+    }
+  ],
+  "birthDate": "1970-01-01",
+  "gender": "male",
+  "identifier": [
+    {
+      "value": "1001"
+    }
+  ],
+  "name": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+          "valueCode": "IDE"
+        }
+      ],
+      "use": "official",
+      "text": "  #(..LastName)# #(..FirstName)#",
+      "family": "#(..LastName)#",
+      "given": [
+        "#(..FirstName)#"
+      ]
+    },
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+          "valueCode": "SYL"
+        }
+      ],
+      "use": "official",
+      "text": "#(..LastNameKana)# #(..FirstNameKana)# ",
+      "family": "#(..LastNameKana)#",
+      "given": [
+        "#(..FirstNameKana)#"
+      ]
+    }
+  ],
+  "telecom": [
+    {
+      "value": "#(..Phone)#"
+    }
+  ]
+}
+}
+
+Parameter ResourceType = "Patient";
+
+Property LastName As %String;
+
+Property FirstName As %String;
+
+Property LastNameKana As %String;
+
+Property FirstNameKana As %String;
+
+Property Phone As %String;
+
+}
