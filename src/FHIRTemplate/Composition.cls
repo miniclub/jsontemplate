@@ -1,5 +1,5 @@
 /// 患者リソース
-Class FHIRTemplate.Resource Extends JSONTemplate.Base
+Class FHIRTemplate.Composition Extends FHIRTemplate.Resource
 {
 
 /// JSON出力する際のテンプレート
@@ -10,19 +10,17 @@ Class FHIRTemplate.Resource Extends JSONTemplate.Base
 XData Template [ MimeType = application/json ]
 {
 {
-	"resourceType": "#(..#ResourceType)#",
-	"FullUrl": "#(..ResourceId)#"
+  "resourceType": "#(..#ResourceType)#",
+  "meta": {
+    "profile": [
+      "#(..#Profile)#"
+    ]
+  }
 }
 }
 
-Parameter ResourceType = "Resource";
+Parameter ResourceType = "Composition";
 
-Property ResourceId As %String [ InitialExpression = {$SYSTEM.Util.CreateGUID()}, Required ];
-
-/// 参照リソースの出力
-Method OutputReference(indent As %Integer = 0) As %Status
-{
-        quit ..FormattedOutput(indent)
-}
+Parameter Profile = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary";
 
 }

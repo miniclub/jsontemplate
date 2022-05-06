@@ -30,4 +30,9 @@ OutputToDeviceメソッドを実行することで、XDATA に記述されたjso
 ## JSONTemplate.Base
 テンプレートの基底クラス
 ## JSONTEmplate.Generator
-テンプレートの
+テンプレート出力メソッドの生成クラス
+## FHIRTemplate.Resource
+FHIRTemplate基底クラス
+参照リソース出力クラス
+## FHIRTemplate.Patient
+患者リソース出力クラス

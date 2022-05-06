@@ -10,9 +10,14 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
 {
     set ret=$$$OK
     try {
+        set indent=indent+1
+        // TABSIZEパラメータの取得
+        set pdef=##class(%CompiledParameter).%OpenId(%class.Name_":TABSIZE")
+        set tabsize=$select($isobject(pdef):pdef.Default,1:"4")
+
         // オブジェクト、Arrayの括弧を出力
         do outstream.WriteLine(" write """_$select(type="array":"[",1:"{")_""",!")
-        do outstream.WriteLine(" set cnt=0")
+        do outstream.WriteLine(" set cnt"_indent_"=0")
 
         // templateのメンバーを順に取り出す
         set iter=template.%GetIterator(),delimiter=0
@@ -21,25 +26,25 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
             if mtype="object" {
                 // メンバーがオブジェクトの場合
                 // キーを出力する
-                do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent+4, delimiter)
+                do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
                 // オブジェクト部分の生成
-                set ret=..GenerateObject(outstream, "object",value,indent+4,.params,.props)
+                set ret=..GenerateObject(outstream, "object",value,indent,.params,.props)
                 quit:$$$ISERR(ret)
                 set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
                 continue
             } elseif mtype="array" {
                 // メンバーがarray の場合
                 // デリミタを出力する
-                do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent+4, delimiter)
+                do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
                 // Array部分の生成
-                set ret=..GenerateObject(outstream, "array", value, indent+4, .params, .props)
+                set ret=..GenerateObject(outstream, "array", value, indent, .params, .props)
                 quit:$$$ISERR(ret)
                 set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
                 continue
             } elseif value'["#("&&(value'[")#") {
                 // 固定文字列の場合
                 // キーがあれば、出力する
-                do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent+4, delimiter)
+                do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
                 do ..OutputValue(outstream, value)
                 set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
                 continue
@@ -48,9 +53,9 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
                 set token=$piece($piece(value,")#"),"#(",2)
                 set ret=..GetParamInfo(token,.info,.params,.props)
                 quit:$$$ISERR(ret)
-                zw info
+                //zw info
                 if $lg(info)="param" {
-                    do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent+4, delimiter)
+                    do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
                     do ..OutputValue(outstream,$lg(info,3))
                     set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
                     continue
@@ -61,7 +66,7 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
                         do outstream.WriteLine(" if .."_$lg(info,2)_"'="""" {")                    
                     }
                     // キーの生成
-                    do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent+4, delimiter)
+                    do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
                     if $lg(info,4)'="datatype" {
                         do ..OutputObject(outstream, info, indent)
                     } else {
@@ -108,12 +113,12 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
             }
             set code=code_$select(codeopen:"""""""",1:"_""""""""")
             // 出力
-            do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent+4, delimiter)
+            do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
             do outstream.WriteLine(" write "_code_",!")
             quit:$$$ISERR(ret)
         }
         // オブジェクト、Arrayの括弧を出力
-        do outstream.WriteLine(" write ?"_indent_","""_$select(type="array":"]",1:"}")_""",!")
+        do outstream.WriteLine(" write ?((indent+"_(indent-1)_")*"_tabsize_"),"""_$select(type="array":"]",1:"}")_""",!")
     } catch err {
         set ret=$SYSTEM.Status.AppendStatus($$$ERROR(5001,"エラーが発生しました"),err.AsStatus())
     }
@@ -208,14 +213,20 @@ ClassMethod OutputValue(outstream As %Stream, value As %String, cr As %Boolean =
 ClassMethod OutputKey(outstream As %Stream, key As %String, indent As %Integer, delimiter As %Boolean = 0) As %Status
 {
     write "outputKey:"_key_":"_delimiter,!
-    do outstream.WriteLine(" write ?"_indent_","_$select(delimiter:""",""",1:"$select(cnt>0:"","",1:"""")")_$select(key'="":"_"""""""_key_""""": """,1:"")_" set cnt=cnt+1")
+    set pdef=##class(%CompiledParameter).%OpenId(%class.Name_":TABSIZE")
+    set tabsize=$select($isobject(pdef):pdef.Default,1:"4")
+    do outstream.WriteLine(" write ?((indent+"_indent_")*"_(tabsize)_"),"_$select(delimiter:""",""",1:"$select(cnt"_indent_">0:"","",1:"""")")_$select(key'="":"_"""""""_key_""""": """,1:"")_" set cnt"_indent_"=cnt"_indent_"+1")
     quit $$$OK
 }
 
 /// オブジェクトへのリファレンス出力
 ClassMethod OutputReference(outstream As %Stream, prop As %String, type As %String, indent As %Integer) As %Status
 {
-    do outstream.WriteLine(" if .."_prop_".%IsA("""_type_""") { set ret=.."_prop_".OutputRefernce() } else { ret=$$$ERROR(5001,""プロパティ"_prop_"の型が誤っています class=""_.."_prop_".%ClassName(1)) } quit:$$$ISERR(ret) ret")
+    set tdef=##class(%CompiledClass).%OpenId(type)
+    if '$isobject(tdef)||('tdef.%IsA("FHIRTemplate.Resource")) {
+        quit $$$ERROR(5001,"クラス"_type_"はFHIRTemplate.Resourceクラスを継承していません")
+    }
+    do outstream.WriteLine(" if .."_prop_".%IsA("""_type_""") { set ret=.."_prop_".OutputRefernce(indent) } else { set ret=$$$ERROR(5001,""プロパティ"_prop_"の型が誤っています class=""_.."_prop_".%ClassName(1)) } quit:$$$ISERR(ret) ret")
     quit $$$OK
 }
 
@@ -223,16 +234,19 @@ ClassMethod OutputReference(outstream As %Stream, prop As %String, type As %Stri
 ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer) As %Status
 {
     write "outputObject",!
+    set pdef=##class(%CompiledParameter).%OpenId(%class.Name_":TABSIZE")
+    set tabsize=$select($isobject(pdef):pdef.Default,1:"4")
+
     // 値の型チェック
-    do outstream.WriteLine(" if '.."_$lg(info,2)_".%IsA("""_$lg(info,3)_""") { ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_.."_$lg(info,3)_".%ClassName(1)) quit }")
+    do outstream.WriteLine(" if '.."_$lg(info,2)_".%IsA("""_$lg(info,3)_""") { set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_.."_$lg(info,2)_".%ClassName(1)) quit }")
 
     if $lg(info,6)'="" {
-        do outstream.WriteLine(" write !,?(indent+2),""["",!")
+        do outstream.WriteLine(" write !,?((indent+"_indent_")*"_tabsize_"+2),""["",!")
         do outstream.WriteLine(" if .."_$lg(info,2)_".%IsA(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter=.."_$lg(info,2)_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t) write:loop>1 "","" set ret=##class("_$lg(info,3)_").OutputByParams(v,indent+4) quit:$$$ISERR(ret) } quit:$$$ISERR(ret) ret")
+        do outstream.WriteLine("   set iter=.."_$lg(info,2)_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t) write:loop>1 "","" set ret=##class("_$lg(info,3)_").OutputByParams(v,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj=.."_$lg(info,2)_".GetNext(.key) quit:key=""""  write:loop>1 "","" set ret=obj.FormattedOutput(indent+4) quit:$$$ISERR(ret) } quit:$$$ISERR(ret) ret")
-        do outstream.WriteLine(" } write ?(indent+2),""]"",!")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj=.."_$lg(info,2)_".GetNext(.key) quit:key=""""  write:loop>1 "","" set ret=obj.FormattedOutput(indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
     } else {
         if $lg(info,4)="datatype" {
             // プロパティがデータ型の場合、出力コードにプロパティを代入
@@ -240,11 +254,11 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
         } else {
             // プロパティがオブジェクトの場合、
             do outstream.WriteLine(" write ! if .."_$lg(info,2)_".%IsA(""%Library.DynamicArray"") {")
-            do outstream.WriteLine("   set ret=##class("_$lg(info,3)_").OutputByParams(.."_$lg(info,2)_",indent+4) quit:$$$ISERR(ret) ret")
+            do outstream.WriteLine("   set ret=##class("_$lg(info,3)_").OutputByParams(.."_$lg(info,2)_",indent+1) quit:$$$ISERR(ret)")
             do outstream.WriteLine(" } elseif .."_$lg(info,2)_".%IsA("""_$lg(info,2)_""") {")
-            do outstream.WriteLine("   set ret=.."_$lg(info,2)_".FormatedOutput(indent+4) quit:$$$ISERR(ret) ret")
+            do outstream.WriteLine("   set ret=.."_$lg(info,2)_".FormattedOutput(indent+1) quit:$$$ISERR(ret)")
             do outstream.WriteLine(" } else {")
-            do outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_.."_$lg(info,2)_".%ClassName(1)) quit ret")
+            do outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_.."_$lg(info,2)_".%ClassName(1)) quit")
             do outstream.WriteLine(" }")
         }
     }
@@ -255,17 +269,20 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
 ClassMethod OutputProperty(outstream As %Stream, info As %List, indent As %Integer, cr As %Boolean = 1) As %Status
 {
     write "outputProperty",!
+    set pdef=##class(%CompiledParameter).%OpenId(%class.Name_":TABSIZE")
+    set tabsize=$select($isobject(pdef):pdef.Default,1:"4")
+
     // リストの場合
     if $lg(info,6)'="" {
         do outstream.WriteLine(" write ""["",!")
         do outstream.WriteLine(" if .."_$lg(info,2)_".%IsA(""%Library.DynamicArray"") {")
         do outstream.WriteLine("   set iter=.."_$lg(info,2)_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t) write:loop>1:"","" write """"""_v_"""""""_$select(cr:",!",1:"")_"}")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj=.."_$lg(info,2)_".GetNext(.key) quit:key=""""  write:loop>1:"","" set ret=obj.FormatedOutput(indent+4) quit:$$$ISERR(ret) } quit:$$$ISERR(ret) ret")
-        do outstream.WriteLine(" } write ?"_(indent+2)_",""]"",!")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj=.."_$lg(info,2)_".GetNext(.key) quit:key=""""  write:loop>1:"","" set ret=obj.FormattedOutput(indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
     } else {
         // プロパティがデータ型の場合、出力コードにプロパティを代入
-        do outstream.WriteLine(" write """"""""_$replace(.."_$lg(info,2)_","""""""","""""""""""")_"""""""""_$select(cr:",!",1:""))
+        do outstream.WriteLine(" write """"""""_$replace(.."_$lg(info,2)_$select($lg(info,7):"LogicalToDisplay(.."_$lg(info,2)_")",1:"")_","""""""","""""""""""")_"""""""""_$select(cr:",!",1:""))
     }
     quit $$$OK
 }

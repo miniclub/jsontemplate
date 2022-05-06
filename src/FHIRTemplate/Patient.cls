@@ -13,15 +13,15 @@ XData Template [ MimeType = application/json ]
   "resourceType": "#(..#ResourceType)#",
   "address": [
     {
-      "postalCode": "1600023",
-      "text": "東京都新宿区西新宿6丁目"
+      "postalCode": "#(..PostalCode)#",
+      "text": "#(..Address)#"
     }
   ],
-  "birthDate": "1970-01-01",
-  "gender": "male",
+  "birthDate": "#(..DOB)#",
+  "gender": "#(..Gender)#",
   "identifier": [
     {
-      "value": "1001"
+      "value": "#(..PatientId)#"
     }
   ],
   "name": [
@@ -73,5 +73,15 @@ Property LastNameKana As %String;
 Property FirstNameKana As %String;
 
 Property Phone As %String;
+
+Property DOB As %Date(FORMAT = 3);
+
+Property Gender As %String(DISPLAYLIST = ",male,female", VALUELIST = ",1,2");
+
+Property PostalCode As %String;
+
+Property PatientId As %String;
+
+Property Address As %String;
 
 }
