@@ -28,8 +28,10 @@ OutputToDeviceメソッドを実行することで、XDATA に記述されたjso
 ## 使用時
 1) 作成したクラスのインスタンスを作成
 2) プロパティに値を設定
-3) OutputToDeviceメソッドを実行
-
+    プロパティには指定されたクラスのインスタンスだけでなく%DynamicObjectも使用できますので、
+    set obj.Property={"param1":"xxxx","param2": "yyy"}
+    といった記述も可能です。
+3) OutputToDevice、OutputToFileメソッドを実行
 
 
 # 収録クラス
@@ -38,8 +40,24 @@ OutputToDeviceメソッドを実行することで、XDATA に記述されたjso
 テンプレートの基底クラス
 ## JSONTEmplate.Generator
 テンプレート出力メソッドの生成クラス
-## FHIRTemplate.Resource
+
+## FHIRTemplate.ResourceBase
 FHIRTemplate基底クラス
-参照リソース出力クラス
+
+## FHIRTemplate.Resource
+FHIRリソース基底クラス
+
+## FHIRTemplate.Bundle
+Bundleリソース出力クラス
+
+## FHIRTemplate.Bundle.entry
+Bundleリソースのentryプロパティで参照先のリソースのuuidとその実体を出力するクラス
+
+## FHIRTemplate.Composition
+Compositionリソース出力クラス
+
+## FHIRTemplate.CodableConcept
+CodableConcept出力クラス
+
 ## FHIRTemplate.Patient
 患者リソース出力クラス
