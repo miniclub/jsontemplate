@@ -9,6 +9,8 @@ Parameter TABSIZE = 4;
 /// JSON出力する際のテンプレート
 /// JSONの値に#(..プロパティ名)#または#(..#パラメータ名)#を指定することで
 /// プロパティの値をJSON形式で出力できます。
+/// #(..プロパティ名(テンプレート名))#を指定すると、特定のプロパティに対して
+/// テンプレートとして使用するクラスを指定できます。
 /// プロパティの型がJSONTemplate.Baseを継承したクラスの場合、
 /// そのクラスのテンプレートからJSON出力します。
 XData Template [ MimeType = application/json ]
@@ -16,14 +18,16 @@ XData Template [ MimeType = application/json ]
 {}
 }
 
+Parameter %JSONENABLED = 1;
+
 /// 標準デバイスへの出力
 Method OutputToDevice(indent As %Integer = 0) As %Status
 {
-        quit ..FormattedOutput(indent)
+        quit ..FormattedOutput($this,indent)
 }
 
 /// ファイルへの出力
-Method OutputToFile(filename As %String, charset As %String = "") As %Status
+Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
 {
     set ret=$$$OK
     open filename:("WNS"_$select(charset'="":"K\"_charset_"\",1:"")):5
@@ -32,7 +36,7 @@ Method OutputToFile(filename As %String, charset As %String = "") As %Status
     }
     try {
         use filename
-        set ret=..FormattedOutput()
+        set ret=..FormattedOutput($this)
     } catch err {
         set ret=err.AsStatus()
     }
@@ -40,8 +44,10 @@ Method OutputToFile(filename As %String, charset As %String = "") As %Status
     quit ret
 }
 
+Property %Indent As %Integer [ InitialExpression = 0 ];
+
 /// テンプレートからJSONデータを出力
-Method FormattedOutput(indent As %Integer = 0) As %Status [ CodeMode = objectgenerator ]
+ClassMethod FormattedOutput(obj As %RegisteredObject, indent As %Integer = 0) As %Status [ CodeMode = objectgenerator ]
 {
     // Abstractクラスの場合は生成しない
     if %class.Abstract {

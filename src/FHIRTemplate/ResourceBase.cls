@@ -1,5 +1,5 @@
 /// 患者リソース
-Class FHIRTemplate.Resource Extends FHIRTemplate.Bundle.entry
+Class FHIRTemplate.ResourceBase Extends JSONTemplate.Base [ Abstract ]
 {
 
 /// JSON出力する際のテンプレート
@@ -10,15 +10,13 @@ Class FHIRTemplate.Resource Extends FHIRTemplate.Bundle.entry
 XData Template [ MimeType = application/json ]
 {
 {
-  "resourceType": "#(..#ResourceType)#",
-  "meta": {
-    "profile": "#(..#Profile)#"
-  }
+	"fullUrl": "urn:uuid:#(..ResourceId)#",
+	"resource": "#($this)#"
 }
 }
 
 Parameter ResourceType = "Resource";
 
-Parameter Profile;
+Property ResourceId As %String [ InitialExpression = {$zcvt($SYSTEM.Util.CreateGUID(),"L")}, Required ];
 
 }

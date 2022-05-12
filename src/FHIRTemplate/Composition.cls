@@ -15,12 +15,18 @@ XData Template [ MimeType = application/json ]
     "profile": [
       "#(..#Profile)#"
     ]
-  }
+  },
+  "status": "#(..status)#",
+  "type": "#(..type)#"
 }
 }
 
 Parameter ResourceType = "Composition";
 
 Parameter Profile = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary";
+
+Property status As %Integer(DISPLAYLIST = ",preliminary,final,amended,entered-in-error", VALUELIST = ",0,1,-1,-2");
+
+Property type As CodableConcept;
 
 }

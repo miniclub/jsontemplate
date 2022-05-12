@@ -16,7 +16,7 @@ ClassMethod Test1()
     set ret=obj.OutputToFile("c:\temp\patient.json")
     if $$$ISOK(ret) {
         use 0 write "正常終了",!
-    }else {
+    } else {
         use 0 write "エラー発生",!
         do $SYSTEM.OBJ.DisplayError(ret)
     }

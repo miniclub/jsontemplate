@@ -1,5 +1,6 @@
-/// 患者リソース
-Class FHIRTemplate.Resource Extends FHIRTemplate.Bundle.entry
+/// Bundle Entry
+/// Bundle内でリソースを保持する
+Class FHIRTemplate.Bundle.entry Extends FHIRTemplate.ResourceBase
 {
 
 /// JSON出力する際のテンプレート
@@ -10,15 +11,9 @@ Class FHIRTemplate.Resource Extends FHIRTemplate.Bundle.entry
 XData Template [ MimeType = application/json ]
 {
 {
-  "resourceType": "#(..#ResourceType)#",
-  "meta": {
-    "profile": "#(..#Profile)#"
-  }
+	"fullUrl": "urn:uuid:#(..ResourceId)#",
+	"resource": "#($this)#"
 }
 }
-
-Parameter ResourceType = "Resource";
-
-Parameter Profile;
 
 }

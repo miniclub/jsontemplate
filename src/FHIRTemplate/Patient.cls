@@ -74,7 +74,7 @@ Property FirstNameKana As %String;
 
 Property Phone As %String;
 
-Property DOB As %Date(FORMAT = 3);
+Property DOB As %Date;
 
 Property Gender As %String(DISPLAYLIST = ",male,female", VALUELIST = ",1,2");
 

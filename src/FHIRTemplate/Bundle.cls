@@ -13,8 +13,8 @@ XData Template [ MimeType = application/json ]
   "type": "document",
   "timestamp": "#(..TimeStamp)#",
   "entry": [
-    "#(..Composition)#",
-    "#(..Patient)#"
+    "#(..Composition(FHIRTemplate.Bundle.entry))#",
+    "#(..Patient(FHIRTemplate.Bundle.entry))#"
   ],
   "signature": {
     "type":"a"
@@ -26,10 +26,10 @@ Parameter ResourceType = "Bundle";
 
 Parameter Profile = "jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Bundle_eDischargeSummary";
 
-Property TimeStamp As %TimeStamp;
+Property TimeStamp As FHIRTemplate.TimeStamp;
 
-Property Composition As Composition;
+Property Composition As Composition [ Required ];
 
-Property Patient As Patient;
+Property Patient As Patient [ Required ];
 
 }
