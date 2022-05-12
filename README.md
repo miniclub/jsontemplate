@@ -38,6 +38,7 @@ OutputToDeviceメソッドを実行することで、XDATA に記述されたjso
 
 ## JSONTemplate.Base
 テンプレートの基底クラス
+
 ## JSONTEmplate.Generator
 テンプレート出力メソッドの生成クラス
 
