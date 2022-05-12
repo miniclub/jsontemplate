@@ -229,7 +229,7 @@ ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props
 /// 固定値の出力
 ClassMethod OutputValue(outstream As %Stream, value As %String, cr As %Boolean = 1) As %Status
 {
-    write "outputvalue",!
+    write "output value",!
     do outstream.WriteLine(" write """""""_$replace(value,"""","""""")_""""""""_$select(cr:",!",1:""))
     quit $$$OK
 }
@@ -237,7 +237,7 @@ ClassMethod OutputValue(outstream As %Stream, value As %String, cr As %Boolean =
 /// パラメータ値の出力
 ClassMethod OutputParameter(outstream As %Stream, param As %String, cr As %Boolean = 1) As %Status
 {
-    write "outputvalue",!
+    write "output parameter",!
     do outstream.WriteLine(" write """"""""_obj.#"_param_"_"""""""""_$select(cr:",!",1:""))
     quit $$$OK
 }
@@ -266,7 +266,7 @@ ClassMethod OutputReference(outstream As %Stream, prop As %String, type As %Stri
 /// オブジェクト出力
 ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer) As %Status
 {
-    write "outputObject",!
+    write "output Object",!
     set pdef=##class(%CompiledParameter).%OpenId(%class.Name_":TABSIZE")
     set tabsize=$select($isobject(pdef):pdef.Default,1:"4")
 
@@ -279,12 +279,13 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
 
     if $lg(info,6)'="" {
         // リスト形式の場合
-        do outstream.WriteLine(" write !,?((indent+"_indent_")*"_tabsize_"+2),""["",!")
+        //do outstream.WriteLine(" write !,?((indent+"_indent_")*"_tabsize_"+2),""["",!")
         do outstream.WriteLine(" if "_propstr_".%IsA(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t) write:loop>1 "","" set ret=##class("_templateclass_").OutputByParams(v,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" set ret=##class("_templateclass_").OutputByParams(v,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  write:loop>1 "","" set ret="_templatestr_".FormattedOutput(obj2,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
-        do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" set ret="_templatestr_".FormattedOutput(obj2,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        //do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
+        do outstream.WriteLine(" }")
     } else {
         if $lg(info,4)="datatype" {
             // プロパティがデータ型の場合、出力コードにプロパティを代入
@@ -292,8 +293,6 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
         } else {
             // プロパティがオブジェクトの場合
 
-            // 改行無しで試してみる
-            //do outstream.WriteLine(" write ! if "_propstr_".%IsA(""%Library.DynamicArray"") {")
             do outstream.WriteLine(" if "_propstr_".%IsA(""%Library.DynamicObject"") {")
             //do outstream.WriteLine("   set ret=##class("_templateclass_").OutputByParams("_propstr_",indent+1) quit:$$$ISERR(ret)")
             do outstream.WriteLine("   set ret=##class("_templateclass_").FormattedOutput("_propstr_",indent+1) quit:$$$ISERR(ret)")
@@ -324,9 +323,9 @@ ClassMethod OutputProperty(outstream As %Stream, info As %List, indent As %Integ
     if $lg(info,6)'="" {
         do outstream.WriteLine(" write ""["",!")
         do outstream.WriteLine(" if "_propstr_".%IsA(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t) write:loop>1:"","" write """"""_v_"""""""_$select(cr:",!",1:"")_"}")
+        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" write """"""_v_"""""""_$select(cr:",!",1:"")_"}")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set v="_propstr_".GetNext(.key) quit:key=""""  write:loop>1:"",""  write """"""_v_"""""""_$select(cr:",!",1:"")_" }")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set v="_propstr_".GetNext(.key) quit:key=""""  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"",""  write """"""_v_"""""""_$select(cr:",!",1:"")_" }")
         do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
     } else {
         // プロパティがデータ型の場合、出力コードにプロパティを代入

@@ -1,5 +1,4 @@
 /// CodableConcept
-/// Bundle内でリソースを保持する
 Class FHIRTemplate.CodableConcept Extends JSONTemplate.Base
 {
 

@@ -30,6 +30,21 @@ ClassMethod Test1()
     set obj.Composition=cobj
     set obj.Patient=pobj
 
+    #dim p1obj as FHIRTemplate.Practitioner
+    set p1obj=##class(FHIRTemplate.Practitioner).%New()
+
+    set p1obj.LastName="山田",p1obj.FirstName="太郎"
+    set p1obj.LastNameKana="ヤマダ",p1obj.FirstNameKana="タロウ"
+
+    do obj.Practitioner.Insert(p1obj)
+
+    set p1obj=##class(FHIRTemplate.Practitioner).%New()
+
+    set p1obj.LastName="山本",p1obj.FirstName="次郎"
+    set p1obj.LastNameKana="ヤマモト",p1obj.FirstNameKana="ジロウ"
+
+    do obj.Practitioner.Insert(p1obj)
+
     set ret=obj.OutputToFile("c:\temp\bundle.json")
     if $$$ISOK(ret) {
         use 0 write "正常終了",!

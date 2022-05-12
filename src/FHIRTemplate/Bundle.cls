@@ -14,7 +14,8 @@ XData Template [ MimeType = application/json ]
   "timestamp": "#(..TimeStamp)#",
   "entry": [
     "#(..Composition(FHIRTemplate.Bundle.entry))#",
-    "#(..Patient(FHIRTemplate.Bundle.entry))#"
+    "#(..Patient(FHIRTemplate.Bundle.entry))#",
+    "#(..Practitioner(FHIRTemplate.Bundle.entry))#"
   ],
   "signature": {
     "type":"a"
@@ -31,5 +32,7 @@ Property TimeStamp As FHIRTemplate.TimeStamp;
 Property Composition As Composition [ Required ];
 
 Property Patient As Patient [ Required ];
+
+Property Practitioner As list Of Practitioner;
 
 }
