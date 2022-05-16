@@ -70,7 +70,7 @@ XData Template [ MimeType = application/json ]
     "bodySite": [ "#(..BodySite(FHIRTemplate.Type.CodeableConcept))#" ],
     "subject" : {
         "reference" : "urn:uuid:#(..Patient)#",
-        "display" : "urn:uuid:#(..PatientDisplayName)#"
+        "display" : "#(..PatientDisplayName)#"
     },
     "encounter":{
         "reference":"urn:uuid:#(..Encounter)#"
