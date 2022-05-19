@@ -299,7 +299,7 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
     } else {
         if $lg(info,4)="datatype" {
             // プロパティがデータ型の場合、出力コードにプロパティを代入
-            if ",%Library.Integer,%Library.Numeric,%Library.Decimal,%Library.Double,%Library.Float,"[(","_$lg(info,3)_",") {
+            if ",%Library.Integer,%Integer,%Library.Numeric,%Library.Decimal,%Library.Double,%Library.Float,"[(","_$lg(info,3)_",") {
                 do outstream.WriteLine(" write """"_"_propstr_"_""""")
             } else {
                 do outstream.WriteLine(" write """"""""_"_propstr_"_""""""""")
@@ -344,7 +344,11 @@ ClassMethod OutputProperty(outstream As %Stream, info As %List, indent As %Integ
         do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
     } else {
         // プロパティがデータ型の場合、出力コードにプロパティを代入
-        do outstream.WriteLine(" write """"""""_$replace("_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:"")_","""""""","""""""""""")_"""""""""_$select(cr:",!",1:""))
+        if ",%Library.Integer,%Library.Numeric,%Library.Decimal,%Library.Double,%Library.Float,"[(","_$lg(info,3)_",") {
+            do outstream.WriteLine(" write """"_$replace("_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:"")_","""""""","""""""""""")_"""""_$select(cr:",!",1:""))
+        } else {
+            do outstream.WriteLine(" write """"""""_$replace("_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:"")_","""""""","""""""""""")_"""""""""_$select(cr:",!",1:""))
+        }
     }
     quit $$$OK
 }
