@@ -17,7 +17,9 @@ XData Template [ MimeType = application/json ]
     ]
   },
   "status": "#(..status)#",
-  "type": "#(..type)#"
+  "type": "#(..type)#",
+  "category": "#(..category)#",
+  "subject": "#(..subject(Reference))#"
 }
 }
 
@@ -28,5 +30,9 @@ Parameter Profile = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition
 Property status As %Integer(DISPLAYLIST = ",preliminary,final,amended,entered-in-error", VALUELIST = ",0,1,-1,-2");
 
 Property type As CodableConcept;
+
+Property category As CodableConcept;
+
+Property subject As Patient;
 
 }

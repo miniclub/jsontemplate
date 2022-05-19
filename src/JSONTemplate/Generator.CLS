@@ -21,7 +21,12 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
 
         // templateのメンバーを順に取り出す
         set iter=template.%GetIterator(),delimiter=0
+#if $SYSTEM.Version.GetMajor()>2021
         while iter.%GetNext(.mkey,.value,.mtype) {
+#Else
+        while iter.%GetNext(.mkey,.value) {
+            set mtype=$select($isobject(value):$select(value.%IsA("%DynamicArray"):"object",1:"array"),1:"string")
+#Endif
 
             if mtype="object" {
                 // メンバーがオブジェクトの場合
@@ -129,7 +134,11 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
             do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
             do outstream.WriteLine(" write "_code_",!")
             quit:$$$ISERR(ret)
+#if $SYSTEM.Version.GetMajor()>2021
         }
+#else
+        }
+#endif
         // オブジェクト、Arrayの括弧を出力
         do outstream.WriteLine(" write ?((indent+"_(indent-1)_")*"_tabsize_"),"""_$select(type="array":"]",1:"}")_""",!")
     } catch err {
@@ -280,8 +289,9 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
     if $lg(info,6)'="" {
         // リスト形式の場合
         //do outstream.WriteLine(" write !,?((indent+"_indent_")*"_tabsize_"+2),""["",!")
-        do outstream.WriteLine(" if "_propstr_".%IsA(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" set ret=##class("_templateclass_").OutputByParams(v,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicArray"") {")
+        //do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" set ret=##class("_templateclass_").OutputByParams(v,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" set ret=##class("_templateclass_").OutputByParams(v,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         do outstream.WriteLine(" } else {")
         do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" set ret="_templatestr_".FormattedOutput(obj2,indent+1) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         //do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")
@@ -293,7 +303,7 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
         } else {
             // プロパティがオブジェクトの場合
 
-            do outstream.WriteLine(" if "_propstr_".%IsA(""%Library.DynamicObject"") {")
+            do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicObject"") {")
             //do outstream.WriteLine("   set ret=##class("_templateclass_").OutputByParams("_propstr_",indent+1) quit:$$$ISERR(ret)")
             do outstream.WriteLine("   set ret=##class("_templateclass_").FormattedOutput("_propstr_",indent+1) quit:$$$ISERR(ret)")
              if $lg(info)="this" {
@@ -301,7 +311,7 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
                 do outstream.WriteLine(" } elseif "_propstr_".%ClassName(1)="""_$lg(info,3)_""" {")
                 do outstream.WriteLine("   set ret=$$$ERROR(5001,""テンプレートとオブジェクトの型が一致しているため出力できません class=""_"_propstr_".%ClassName(1)) quit")
             }
-            do outstream.WriteLine(" } elseif "_propstr_".%IsA("""_$lg(info,3)_""") {")
+            do outstream.WriteLine(" } elseif "_propstr_".%Extends("""_$lg(info,3)_""") {")
             do outstream.WriteLine("   set ret="_templatestr_".FormattedOutput("_propstr_",indent+1) quit:$$$ISERR(ret)")
             do outstream.WriteLine(" } else {")
             do outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_"_propstr_".%ClassName(1)) quit")
@@ -322,8 +332,9 @@ ClassMethod OutputProperty(outstream As %Stream, info As %List, indent As %Integ
     // リストの場合
     if $lg(info,6)'="" {
         do outstream.WriteLine(" write ""["",!")
-        do outstream.WriteLine(" if "_propstr_".%IsA(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" write """"""_v_"""""""_$select(cr:",!",1:"")_"}")
+        do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicArray"") {")
+        //do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v,.t)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" write """"""_v_"""""""_$select(cr:",!",1:"")_"}")
+        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"","" write """"""_v_"""""""_$select(cr:",!",1:"")_"}")
         do outstream.WriteLine(" } else {")
         do outstream.WriteLine("   set key="""" for loop=1:1 { set v="_propstr_".GetNext(.key) quit:key=""""  write:loop>1 ?((indent+"_indent_")*"_(tabsize)_"),"",""  write """"""_v_"""""""_$select(cr:",!",1:"")_" }")
         do outstream.WriteLine(" } write ?((indent+"_indent_")*"_tabsize_"+2),""]"",!")

@@ -19,7 +19,7 @@ XData Template [ MimeType = application/json ]
         }
       ],
       "use": "official",
-      "text": "  #(..LastName)# #(..FirstName)#",
+      "text": "#(..LastName)# #(..FirstName)#",
       "family": "#(..LastName)#",
       "given": [
         "#(..FirstName)#"
