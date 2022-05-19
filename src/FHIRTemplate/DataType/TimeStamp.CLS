@@ -1,4 +1,4 @@
-Class FHIRTemplate.TimeStamp Extends %DataType [ ClientDataType = TIMESTAMP, OdbcType = TIMESTAMP, SqlCategory = TIMESTAMP ]
+Class FHIRTemplate.DataType.TimeStamp Extends %DataType [ ClientDataType = TIMESTAMP, OdbcType = TIMESTAMP, SqlCategory = TIMESTAMP ]
 {
 
 /// 出力フォーマット

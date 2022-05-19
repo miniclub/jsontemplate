@@ -1,0 +1,4 @@
+Class FHIRTemplate.Type.TimeStamp
+{
+
+}

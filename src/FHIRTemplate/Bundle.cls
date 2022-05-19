@@ -27,7 +27,7 @@ Parameter ResourceType = "Bundle";
 
 Parameter Profile = "jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Bundle_eDischargeSummary";
 
-Property TimeStamp As FHIRTemplate.TimeStamp;
+Property TimeStamp As FHIRTemplate.DataType.TimeStamp;
 
 Property Composition As Composition [ Required ];
 

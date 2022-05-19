@@ -1,5 +1,5 @@
 /// CodableConcept
-Class FHIRTemplate.CodableConcept Extends JSONTemplate.Base
+Class FHIRTemplate.DataType.CodeableConcept Extends JSONTemplate.Base
 {
 
 /// JSON出力する際のテンプレート
