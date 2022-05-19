@@ -299,7 +299,11 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, indent As %Integer
     } else {
         if $lg(info,4)="datatype" {
             // プロパティがデータ型の場合、出力コードにプロパティを代入
-            do outstream.WriteLine(" write """"""""_"_propstr_"_""""""""")
+            if ",%Library.Integer,%Library.Numeric,%Library.Decimal,%Library.Double,%Library.Float,"[(","_$lg(info,3)_",") {
+                do outstream.WriteLine(" write """"_"_propstr_"_""""")
+            } else {
+                do outstream.WriteLine(" write """"""""_"_propstr_"_""""""""")
+            }
         } else {
             // プロパティがオブジェクトの場合
 
