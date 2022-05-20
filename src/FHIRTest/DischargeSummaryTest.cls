@@ -186,10 +186,10 @@ ClassMethod Organization() As FHIRTemplate.Organization
 {
     set organization=##class(FHIRTemplate.Organization).%New()
     set organization.TextDiv="<div xmlns='http://www.w3.org/1999/xhtml'>テスト組織です</div>"
-    set organization.PrefNum=13 //都道府県番号らしい
-    set organization.TensuCode=1
-    set organization.HokenNum7=1234567
-    set organization.HokenNum10=1234567890
+    set organization.PrefNum="13" //都道府県番号らしい
+    set organization.TensuCode="1"
+    set organization.HokenNum7="1234567"
+    set organization.HokenNum10="1234567890"
     set organization.HospitalName="厚生労働省第一病院"
     set organization.Phone="0120-012-0123"
     set organization.AddressText="神奈川県横浜市港区１－２－３"
