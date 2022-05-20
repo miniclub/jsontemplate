@@ -56,6 +56,8 @@ Property AdmitSource As FHIRTemplate.DataType.CodeableConcept;
 
 Property DischargeDisposition As FHIRTemplate.DataType.CodeableConcept;
 
+Property Rank As %Integer [ InitialExpression = 1 ];
+
 /// 固定値にしたもの
 /// meta.profile/status/class以下/diagnosis.use.coding/diagnosis.rank
 XData Template [ MimeType = application/json ]
@@ -95,7 +97,7 @@ XData Template [ MimeType = application/json ]
                     }
                 ]
             },
-            "rank":1
+            "rank":"#(..Rank)#"
         }
     ],
     "hospitalization":{
