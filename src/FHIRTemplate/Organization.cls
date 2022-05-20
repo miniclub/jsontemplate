@@ -7,16 +7,16 @@ Parameter ResourceType = "Organization";
 Property TextDiv As %String(MAXLEN = 10000);
 
 /// Extentionのidentifier.valueIdentifier.value
-Property PrefNum As %Integer;
+Property PrefNum As %String;
 
 /// 点数コード　1:医科,3:歯科
-Property TensuCode As %Integer(VALUELIST = ",1,3");
+Property TensuCode As %String(VALUELIST = ",1,3");
 
 /// 保険医療機関番号7桁
-Property HokenNum7 As %Integer(MAXVAL = 7, MINVAL = 7);
+Property HokenNum7 As %String(MAXLEN = 7, MINLEN = 7);
 
 /// 保険医療機関番号10桁
-Property HokenNum10 As %Integer(MAXVAL = 10, MINVAL = 10);
+Property HokenNum10 As %String(MAXLEN = 10, MINLEN = 10);
 
 /// 医療機関名称
 Property HospitalName As %String(MAXLEN = 100);
