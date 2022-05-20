@@ -57,7 +57,7 @@ Bundleリソースのentryプロパティで参照先のリソースのuuidと�
 ## FHIRTemplate.Composition
 Compositionリソース出力クラス
 
-## FHIRTemplate.CodableConcept
+## FHIRTemplate.DataType.CodeableConcept
 CodableConcept出力クラス
 
 ## FHIRTemplate.Patient
