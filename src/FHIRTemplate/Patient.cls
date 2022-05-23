@@ -47,7 +47,7 @@ XData Template [ MimeType = application/json ]
         }
       ],
       "use": "official",
-      "text": "#(..LastNameKana)# #(..FirstNameKana)# ",
+      "text": "#(..LastNameKana)# #(..FirstNameKana)#",
       "family": "#(..LastNameKana)#",
       "given": [
         "#(..FirstNameKana)#"
@@ -74,7 +74,7 @@ Property FirstNameKana As %String;
 
 Property Phone As %String;
 
-Property DOB As %Date;
+Property DOB As %Date(FORMAT = 3);
 
 Property Gender As %String(DISPLAYLIST = ",male,female", VALUELIST = ",1,2");
 

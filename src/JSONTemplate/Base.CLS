@@ -21,9 +21,16 @@ XData Template [ MimeType = application/json ]
 Parameter %JSONENABLED = 1;
 
 /// 標準デバイスへの出力
-Method OutputToDevice(indent As %Integer = 0) As %Status
+Method OutputToDevice() As %Status
 {
-        quit ..FormattedOutput($this,indent)
+        set ret=$$$OK
+        set json=..FormattedOutput($this,.ret)
+        if $$$ISOK(ret) {
+            set out=##class(%JSON.Formatter).%New()
+            set out.indent=4
+            do out.Format(json)
+        }
+        quit ret
 }
 
 /// ファイルへの出力
@@ -35,8 +42,14 @@ Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
         quit $$$ERROR($$$FileCanNotOpen,filename)
     }
     try {
+        set tpl=..FormattedOutput($this,.ret)
+        quit:$$$ISERR(ret)
+
+        set out=##class(%JSON.Formatter).%New()
+        set out.Indent=1
+
         use filename
-        set ret=..FormattedOutput($this)
+        do out.Format(tpl)
     } catch err {
         set ret=err.AsStatus()
     }
@@ -47,11 +60,11 @@ Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
 Property %Indent As %Integer [ InitialExpression = 0 ];
 
 /// テンプレートからJSONデータを出力
-ClassMethod FormattedOutput(obj As %RegisteredObject, indent As %Integer = 0) As %Status [ CodeMode = objectgenerator ]
+ClassMethod FormattedOutput(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicAbstractObject [ CodeMode = objectgenerator ]
 {
     // Abstractクラスの場合は生成しない
     if %class.Abstract {
-        do %code.WriteLine(" quit $$$OK")
+        do %code.WriteLine(" set ret=$$$NotImplemented quit """"")
         quit $$$OK
     }
     set ret=$$$OK,lineno=0
@@ -84,10 +97,18 @@ ClassMethod FormattedOutput(obj As %RegisteredObject, indent As %Integer = 0) As
             quit
         }
         // JSON出力処理の生成
-        set ret=##class(JSONTemplate.Generator).GenerateObject(%code, "object",tpl,0,.params,.props)
+        set code=##class(%Stream.TmpCharacter).%New()
+        //set code.TranslateTable="UTF8"
+        set ret=##class(JSONTemplate.Generator).GenerateObject(code, "object",tpl,"tpl",.params,.props)
         quit:$$$ISERR(ret)
+        do %code.WriteLine(" set tpl="_tpl.%ToJSON())
+        do code.Rewind()
+        while 'code.AtEnd {
+            do %code.WriteLine("   "_code.ReadLine())
+        }
+
         do %code.WriteLine(" } catch err { set ret=err.AsStatus() }")
-        do %code.WriteLine(" quit ret")
+        do %code.WriteLine(" quit $select($$$ISOK(ret):tpl,1:"""")")
 
     } catch err {
         set ret=$SYSTEM.Status.AppendStatus($$$ERROR(5001,"エラーが発生しました"),err.AsStatus())
