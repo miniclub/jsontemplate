@@ -271,11 +271,15 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) A
         } else {
             // プロパティがオブジェクトの場合
 
-            do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicObject"") {")
+            set base=$piece(path,".",1,*-1)_"."
             if $piece(path,".",*)["(" {
-                set cmd=$zstrip($replace(path,"%Get","%Set"),">W",")")
+                set cmd=base_$zstrip($replace($piece(path,".",*),"%Get","%Set"),">W",")")
+                do outstream.WriteLine(" if '$isobject("_propstr_") { do "_base_$replace($piece(path,".",*),"%Get","%Remove"))
+                do outstream.WriteLine(" } elseif "_propstr_".%Extends(""%Library.DynamicObject"") {")
                 do outstream.WriteLine("   do "_cmd_",##class("_templateclass_").FormattedOutput("_propstr_",.ret)) quit:$$$ISERR(ret)")
             } else {
+                do outstream.WriteLine(" if '$isobject("_propstr_") { do "_base_"%Remove("""_$piece(path,".",*)_""")")
+                do outstream.WriteLine(" } elseif "_propstr_".%Extends(""%Library.DynamicObject"") {")
                 do outstream.WriteLine("   set "_path_"=##class("_templateclass_").FormattedOutput("_propstr_",.ret) quit:$$$ISERR(ret)")
             }
              if $lg(info)="this" {

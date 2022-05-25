@@ -45,11 +45,14 @@ Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
         set tpl=..FormattedOutput($this,.ret)
         quit:$$$ISERR(ret)
 
+        #dim out as %JSON.Formatter
         set out=##class(%JSON.Formatter).%New()
         set out.Indent=1
 
         use filename
-        do out.Format(tpl)
+        set ret=out.Format(tpl)
+        do:$$$ISERR(ret) $SYSTEM.OBJ.DisplayError(ret)
+        //do tpl.%ToJSON()
     } catch err {
         set ret=err.AsStatus()
     }

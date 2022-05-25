@@ -8,7 +8,7 @@ XData Template [ MimeType = application/json ]
 {
   "resourceType": "#(..#ResourceType)#",
   "meta": {
-    "profile": "#(..#Profile)#"
+    "profile": [ "#(..#Profile)#" ]
   },
   "type": "document",
   "timestamp": "#(..TimeStamp)#",
