@@ -89,10 +89,11 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
         set key="" for {
             set pdef=%compiledclass.Properties.GetNext(.key)
             quit:key=""
-            //set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
+            set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
             //quit:$$$ISERR(ret)
             set display=$select(pdef.Parameters.GetAt("DISPLAYLIST")'=""||(pdef.Parameters.GetAt("FORMAT")'=""):1,1:0)
-            set classtype=$select($extract(pdef.Type)="%":"datatype",1:"object")
+            set classtype=$select($isobject(tdef)&&(tdef.ClassType="datatype"):"datatype",$extract(pdef.Type)="%":"datatype",1:"object")
+
             set props(pdef.Name)=$lb(pdef.Type,classtype,pdef.Required,pdef.Collection,display)
         }
         quit:$$$ISERR(ret)

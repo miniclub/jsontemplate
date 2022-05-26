@@ -65,8 +65,11 @@ ClassMethod Test1()
     set obj1.Param2=4444    
     do obj.List2.Insert(obj1)
 
-    set ret=obj.OutputToFile("c:\temp\basetest.json")
+    set a=##class(%Stream.FileCharacter).%New()
+    set a.Filename="c:\temp\basetest2.json"
+    set ret=obj.OutputToStream(a)
     if $$$ISOK(ret) {
+        do a.%Save()
         use 0 write "正常終了",!
     }else {
         use 0 write "エラー発生",!
