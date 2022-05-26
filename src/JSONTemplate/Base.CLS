@@ -51,12 +51,24 @@ Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
 
         use filename
         set ret=out.Format(tpl)
-        do:$$$ISERR(ret) $SYSTEM.OBJ.DisplayError(ret)
-        //do tpl.%ToJSON()
     } catch err {
         set ret=err.AsStatus()
     }
     close filename
+    quit ret
+}
+
+/// ストリームへの出力
+Method OutputToStream(stream As %Stream) As %Status
+{
+    set ret=$$$OK
+    try {
+        set tpl=..Process($this,.ret)
+        quit:$$$ISERR(ret)
+        do tpl.%ToJSON(stream)
+    } catch err {
+        set ret=err.AsStatus()
+    }
     quit ret
 }
 
