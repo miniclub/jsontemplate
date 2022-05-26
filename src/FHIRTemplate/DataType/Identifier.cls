@@ -9,9 +9,9 @@ Property value As %String;
 XData Template [ MimeType = application/json ]
 {
 {
-        "system":"#(..system)#",
-        "value":"#(..value)#"
-    }
+    "system":"#(..system)#",
+    "value":"#(..value)#"
+}
 }
 
 }

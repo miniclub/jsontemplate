@@ -24,7 +24,7 @@ Parameter %JSONENABLED = 1;
 Method OutputToDevice() As %Status
 {
         set ret=$$$OK
-        set json=..FormattedOutput($this,.ret)
+        set json=..Process($this,.ret)
         if $$$ISOK(ret) {
             set out=##class(%JSON.Formatter).%New()
             set out.indent=4
@@ -42,7 +42,7 @@ Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
         quit $$$ERROR($$$FileCanNotOpen,filename)
     }
     try {
-        set tpl=..FormattedOutput($this,.ret)
+        set tpl=..Process($this,.ret)
         quit:$$$ISERR(ret)
 
         #dim out as %JSON.Formatter
@@ -63,7 +63,8 @@ Method OutputToFile(filename As %String, charset As %String = "UTF8") As %Status
 Property %Indent As %Integer [ InitialExpression = 0 ];
 
 /// テンプレートからJSONデータを出力
-ClassMethod FormattedOutput(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicAbstractObject [ CodeMode = objectgenerator ]
+/// テンプレートを元にプロパティを挿入したJSONオブジェクトを返す
+ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicAbstractObject [ CodeMode = objectgenerator ]
 {
     // Abstractクラスの場合は生成しない
     if %class.Abstract {
@@ -76,10 +77,14 @@ ClassMethod FormattedOutput(obj As %RegisteredObject, ByRef ret As %Status) As %
         set key="" for {
             set pdef=%compiledclass.Properties.GetNext(.key)
             quit:key=""
-            set tdef=##class(%CompiledClass).%OpenId(pdef.Type)
+            //set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
+            //quit:$$$ISERR(ret)
             set display=$select(pdef.Parameters.GetAt("DISPLAYLIST")'=""||(pdef.Parameters.GetAt("FORMAT")'=""):1,1:0)
-            set props(pdef.Name)=$lb(pdef.Type,tdef.ClassType,pdef.Required,pdef.Collection,display)
+            set classtype=$select($extract(pdef.Type)="%":"datatype",1:"object")
+            set props(pdef.Name)=$lb(pdef.Type,classtype,pdef.Required,pdef.Collection,display)
         }
+        quit:$$$ISERR(ret)
+
         // パラメータの一覧を取得
         set key="" for {
             set pdef=%compiledclass.Parameters.GetNext(.key)
@@ -102,16 +107,24 @@ ClassMethod FormattedOutput(obj As %RegisteredObject, ByRef ret As %Status) As %
         // JSON出力処理の生成
         set code=##class(%Stream.TmpCharacter).%New()
         //set code.TranslateTable="UTF8"
-        set ret=##class(JSONTemplate.Generator).GenerateObject(code, "object",tpl,"tpl",.params,.props)
+        do ##class(Generator).InitJSONString()
+        set objstr=##class(Generator).SetJSONString(code,tpl)
+        set ret=##class(JSONTemplate.Generator).GenerateObject(code, "object",tpl,objstr,.params,.props)
         quit:$$$ISERR(ret)
-        do %code.WriteLine(" set tpl="_tpl.%ToJSON())
         do code.Rewind()
         while 'code.AtEnd {
-            do %code.WriteLine("   "_code.ReadLine())
+            set line=code.ReadLine()
+            if $zstrip(line,"<>W")?1"$tpl"1.N {
+                // $tplで始まる行があれば、JSON文字列出力
+                write "line "_line,!
+                do %code.WriteLine("  set "_$piece(line,"$",2)_"="_%jsonstring(+$piece(line,"$tpl",2)).%ToJSON())
+            } else {
+                do %code.WriteLine("   "_line)
+            }
         }
 
         do %code.WriteLine(" } catch err { set ret=err.AsStatus() }")
-        do %code.WriteLine(" quit $select($$$ISOK(ret):tpl,1:"""")")
+        do %code.WriteLine(" quit $select($$$ISOK(ret):"_objstr_",1:"""")")
 
     } catch err {
         set ret=$SYSTEM.Status.AppendStatus($$$ERROR(5001,"エラーが発生しました"),err.AsStatus())

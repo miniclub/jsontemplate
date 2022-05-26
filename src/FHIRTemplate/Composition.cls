@@ -29,9 +29,9 @@ Parameter Profile = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition
 
 Property status As %Integer(DISPLAYLIST = ",preliminary,final,amended,entered-in-error", VALUELIST = ",0,1,-1,-2");
 
-Property type As CodableConcept;
+Property type As FHIRTemplate.DataType.CodeableConcept;
 
-Property category As CodableConcept;
+Property category As FHIRTemplate.DataType.CodeableConcept;
 
 Property subject As Patient;
 

@@ -11,16 +11,12 @@ XData Template [ MimeType = application/json ]
 {
 {
   "resourceType": "#(..#ResourceType)#",
-  "address": [
-    {
-      "postalCode": "#(..PostalCode)#",
-      "text": "#(..Address)#"
-    }
-  ],
-  "birthDate": "#(..DOB)#",
-  "gender": "#(..Gender)#",
+  "meta": {
+    "profile": [ "#(..ProfileURI)#" ]
+  },
   "identifier": [
     {
+      "system": "urn:oid:1.2.392.100495.20.3.51.1#(..HospitalId)#",
       "value": "#(..PatientId)#"
     }
   ],
@@ -56,13 +52,26 @@ XData Template [ MimeType = application/json ]
   ],
   "telecom": [
     {
-      "value": "#(..Phone)#"
+      "system": "phone",
+      "value": "#(..Phone)#",
+      "use": "home"
     }
-  ]
+  ],
+  "gender": "#(..Gender)#",
+  "birthDate": "#(..DOB)#",
+  "address": [
+    {
+      "postalCode": "#(..PostalCode)#",
+      "text": "#(..Address)#"
+    }
+  ],
+  "maritalStatus": "#(..MaritalStatus)#"
 }
 }
 
 Parameter ResourceType = "Patient";
+
+Property ProfileURI As %String;
 
 Property LastName As %String;
 
@@ -80,8 +89,12 @@ Property Gender As %String(DISPLAYLIST = ",male,female", VALUELIST = ",1,2");
 
 Property PostalCode As %String;
 
+Property HospitalId As %String;
+
 Property PatientId As %String;
 
 Property Address As %String;
+
+Property MaritalStatus As FHIRTemplate.DataType.CodeableConcept;
 
 }

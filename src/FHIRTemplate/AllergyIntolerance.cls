@@ -53,12 +53,12 @@ XData Template [ MimeType = application/json ]
         "value":"#(..IdentifierValue)#"
         }
     ],
-    "clinicalStatus": "#(..ClinicalStatus(FHIRTemplate.DataType.CodeableConcept))#",
-    "verificationStatus":"#(..VerificationStatus(FHIRTemplate.DataType.CodeableConcept))#",
+    "clinicalStatus": "#(..ClinicalStatus)#",
+    "verificationStatus":"#(..VerificationStatus)#",
     "type":"#(..Type)#",
     "category": ["#(..Category)#"],
     "criticality":"#(..Criticality)#",
-    "code": "#(..Code(FHIRTemplate.DataType.CodeableConcept))#",
+    "code": "#(..Code)#",
     "patient": {
         "reference": "urn:uuid:#(..Patient)#"
     },

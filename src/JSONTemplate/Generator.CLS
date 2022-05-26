@@ -10,11 +10,8 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
 {
     set ret=$$$OK
     try {
-        set indent=$length(path,".")
-        // オブジェクト、Arrayの括弧を出力
-        //do outstream.WriteLine(" write """_$select(type="array":"[",1:"{")_""",!")
-        //do outstream.WriteLine(" set cnt"_indent_"=0")
-
+        set dynamic=0
+        
         // templateのメンバーを順に取り出す
         set iter=template.%GetIterator()
 #if $SYSTEM.Version.GetMajor()>2021
@@ -23,32 +20,26 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
         while iter.%GetNext(.mkey,.value) {
             set mtype=$select($isobject(value):$select(value.%IsA("%DynamicArray"):"object",1:"array"),1:"string")
 #Endif
-
-            if mtype="object" {
+             if mtype="object" {
                 // メンバーがオブジェクトの場合
-                // キーを出力する
-                //*********do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
-                // オブジェクト部分の生成
-                //set ret=..GenerateObject(outstream, "object",value,path_"."_mkey,.params,.props)
-                set ret=..GenerateObject(outstream, "object",value,path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"),.params,.props)
+                set path2=$select(dynamic:..SetJSONString(outstream, value),1:path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
+                set ret=..GenerateObject(outstream, "object",value,path2,.params,.props)
                 quit:$$$ISERR(ret)
-                //set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
+                do:dynamic outstream.WriteLine(" do "_path_".%Push("_path2_")")
                 continue
             } elseif mtype="array" {
                 // メンバーがarray の場合
-                // デリミタを出力する
-                //do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
                 // Array部分の生成
-                set ret=..GenerateObject(outstream, "array", value, path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"), .params, .props)
+                set path2=$select(dynamic:..SetJSONString(outstream, value),1:path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
+                set ret=..GenerateObject(outstream, "array", value, path2, .params, .props)
                 quit:$$$ISERR(ret)
-                //set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
+                do:dynamic outstream.WriteLine(" do "_path_".%Push("_path2_")")
                 continue
             } elseif value'["#("&&(value'[")#") {
                 // 固定文字列の場合
-                // キーがあれば、出力する
-                //do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
-                //do ..OutputValue(outstream, value)
-                //set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
+                if type="array"&&(dynamic) {
+                    do ..OutputValue(outstream,value,path_".%Get("_mkey_")")
+                }
                 continue
             } elseif value="#($this)#" {
                 // 現在のインスタンスでデフォルトのテンプレートを使って出力する
@@ -57,9 +48,9 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
                 set ret=..GetParamInfo(token,.info,.params,.props)
                 quit:$$$ISERR(ret)
                 //zw info
-                //do ..OutputKey(outstream, $select(type="object":mkey,1:""), indent, delimiter)
+                set:'dynamic&&(type="array") dynamic=mkey+1
                 do ..OutputObject(outstream, info, path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
-                set delimiter=1 // 次の要素は必ずデリミタを出力
+                do template.%Set(mkey,"")
                 continue
             } elseif value?1"#("2"."1E1A.AN.1(1"("1(1A.AN).(1"."1A.AN)1")")1")#" {
                 // objectやarray形式の置き換え
@@ -67,20 +58,21 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
                 set ret=..GetParamInfo(token,.info,.params,.props)
                 quit:$$$ISERR(ret)
                 //zw info
+                set:'dynamic&&(type="array") dynamic=mkey+1
                 if $lg(info)="param" {
                     // パラメータの場合
                     do ..OutputParameter(outstream,$lg(info,2),path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
-                    //set delimiter=1 // 要素として出力されるので、次の要素は必ずデリミタを出力
+                    do template.%Set(mkey,"")
                     continue
                 }
                 if $lg(info)="prop" {
                     // プロパティの場合
-                    do template.%Set(mkey,"")
                     if $lg(info,4)'="datatype" {
                         do ..OutputObject(outstream, info, path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
                     } else {
                         do ..OutputProperty(outstream, info, path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
                     }
+                    do template.%Set(mkey,"")
                     continue
                 }
                 continue
@@ -118,15 +110,26 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
                 set:literal'="" code=code_$select(code'=""&&codeopen:"",code'="":"_""",1:"""")_$replace(literal,"""",""""""),codeopen=1
             }
             set code=code_$select(codeopen:"""",1:"")
+            set:'dynamic&&(type="array") dynamic=mkey+1
             // 出力
+            if type="array" {
+                do outstream.WriteLine(" do "_path_".%Push("_code_")")
+            } else {
+                do outstream.WriteLine(" set "_path_"."_mkey_"="_code)
+            }
             do template.%Set(mkey,"")
-            do outstream.WriteLine(" set "_path_"."_$select(type="object":mkey,1:"%Get("_mkey_")")_"="_code)
             quit:$$$ISERR(ret)
 #if $SYSTEM.Version.GetMajor()>2021
         }
 #else
         }
 #endif
+        if type="array"&&dynamic {
+            set size=template.%Size()
+            for i=dynamic:1:size {
+                do template.%Pop()
+            }
+        }
     } catch err {
         set ret=$SYSTEM.Status.AppendStatus($$$ERROR(5001,"エラーが発生しました"),err.AsStatus())
     }
@@ -137,7 +140,6 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
 /// パラメータやプロパティの属性を取得する
 /// info ... $lb("param",paramname,default)
 ///          $lb("this","",%class.Name,"object")
-///          --- $lb("ref",propname,proptype,classtype,required,collection,$lb(classlist))
 ///          $lb("prop",propname,proptype,classtype,required,collection,displayflg,templateclass)
 ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props) As %Status
 {
@@ -160,39 +162,10 @@ ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props
                 quit
             }
             set info=$lb("param",token)_val
-        } elseif $extract(token,1,3)="..@" {
-            // オブジェクト参照形式
-            set token=$extract(token,4,*)
-            set classlist=""
-            write "参照オブジェクト:",token,!
-            if token["(" {
-                set refclslist=$piece($piece(token,")"),"(",2)
-                set token=$piece(token,"(")
-                // 制約クラスのリスト作成
-                for r=1:1:$length(refclslist,"|") {
-                    set refclass=$piece(refclslist,"|",r)
-                    if refclass'["." {
-                        set classlist=classlist_$lb($piece(%class.Name,".",1,*-1)_"."_refclass)
-                    } else {
-                        set classlist=classlist_$lb(refclass)
-                    }
-                }
-            }
-            // プロパティチェック
-            if token="" {
-                set ret=$$$ERROR(5001,"プロパティ名が存在しません")
-                quit
-            }
-            if '$data(props(token),val) {
-                set ret=$$$ERROR(5001,"プロパティ「"_token_"」が存在しません")
-                quit
-            }
-            set info=$lb("ref",token)_val_$select(classlist'="":$lb(classlist),1:"")
-            
         } elseif $extract(token,1,2)=".." {
             set token=$extract(token,3,*)
             // パラメータチェック
-            write "オブジェクト:",token,!
+            write "プロパティ:",token,!
             // テンプレートクラスチェック
             if token["(" {
                 set templateclass=$piece($piece(token,")"),"(",2)
@@ -221,25 +194,26 @@ ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props
     quit ret
 }
 
-/*
-/// 固定値の出力
-ClassMethod OutputValue(outstream As %Stream, value As %String, cr As %Boolean = 1) As %Status
-{
-    write "output value",!
-    do outstream.WriteLine(" write """""""_$replace(value,"""","""""")_""""""""_$select(cr:",!",1:""))
-    quit $$$OK
-}
-*/
 /// パラメータ値の出力
 ClassMethod OutputParameter(outstream As %Stream, param As %String, path As %String) As %Status
 {
     write "output parameter",!
+    set base=$piece(path,".",1,*-1)_".",current=$piece(path,".",*)
     if $piece(path,".",*)["(" {
-        set cmd=$zstrip($replace(path,"%Get","%Set"),">W",")")
-        do outstream.WriteLine(" do "_cmd_",obj.#"_param_")")
+        set cmd=base_$zstrip($replace(current,"%Get","%Push"),">W",")")
+        do outstream.WriteLine(" do "_base_"%Push(obj.#"_param_")")
     } else {
         do outstream.WriteLine(" set "_path_"=obj.#"_param)
     }
+    quit $$$OK
+}
+
+/// 固定文字列の出力
+ClassMethod OutputValue(outstream As %Stream, value As %String, path As %String) As %Status
+{
+    write "output value",!
+    set base=$piece(path,".",1,*-1)_"."
+    do outstream.WriteLine(" do "_base_"%Push("_$select((+value)=value:value,1:""""_$replace(value,"""","""""")_""")"))
     quit $$$OK
 }
 
@@ -248,56 +222,59 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) A
 {
     write "output Object",!
     set propstr=$select($lg(info,2)'="":"obj."_$lg(info,2),1:"obj")
-    set templatestr=$select($lg(info,8)'="":"##class("_$lg(info,8)_")",1:"obj")
+    set templatestr=$select($lg(info,8)'="":"##class("_$lg(info,8)_")",1:propstr)
     set templateclass=$select($lg(info,8)'="":$lg(info,8),1:$lg(info,3))
 
+    set base=$piece(path,".",1,*-1)_".",current=$piece(path,".",*)
     if $lg(info,6)'="" {
         // リスト形式の場合
-        do outstream.WriteLine(" do "_$replace(path,"%Get","%Remove"))
+        //set cmd=base_$replace(current,"%Get","%Remove")
+        //do outstream.WriteLine(" do "_base_$replace(current,"%Get","%Remove"))
+        do outstream.WriteLine(" if $isobject("_propstr_") {")
         do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  do "_$piece(path,".",1,*-1)_".%Push(##class("_templateclass_").OutputByParams(v,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  do "_base_"%Push(##class("_templateclass_").Process(v,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  do "_$piece(path,".",1,*-1)_".%Push("_templatestr_".FormattedOutput(obj2,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
-        do outstream.WriteLine(" }")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  do "_base_"%Push(obj2.Process(obj2,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine(" }}")
     } else {
-        if $lg(info,4)="datatype" {
-            // プロパティがデータ型の場合、出力コードにプロパティを代入
-            if ",%Library.Integer,%Integer,%Library.Numeric,%Library.Decimal,%Library.Double,%Library.Float,"[(","_$lg(info,3)_",") {
-                // 数値型の場合、値の前後に引用符をつけない
-                do outstream.WriteLine(" write """"_"_propstr_"_""""")
-            } else {
-                do outstream.WriteLine(" write """"""""_"_propstr_"_""""""""")
-            }
+        // プロパティがオブジェクトの場合
+        if current["(" {
+            // リスト形式の場合
+            //set cmd=base_$zstrip($replace(current,"%Get","%Push"),">W",")")
+            do outstream.WriteLine(" if $isobject("_propstr_") {")
+            do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicObject"") {")
+            do outstream.WriteLine("   do "_base_"%Push(##class("_templateclass_").Process("_propstr_",.ret)) quit:$$$ISERR(ret)")
         } else {
-            // プロパティがオブジェクトの場合
-
-            set base=$piece(path,".",1,*-1)_"."
-            if $piece(path,".",*)["(" {
-                set cmd=base_$zstrip($replace($piece(path,".",*),"%Get","%Set"),">W",")")
-                do outstream.WriteLine(" if '$isobject("_propstr_") { do "_base_$replace($piece(path,".",*),"%Get","%Remove"))
-                do outstream.WriteLine(" } elseif "_propstr_".%Extends(""%Library.DynamicObject"") {")
-                do outstream.WriteLine("   do "_cmd_",##class("_templateclass_").FormattedOutput("_propstr_",.ret)) quit:$$$ISERR(ret)")
-            } else {
-                do outstream.WriteLine(" if '$isobject("_propstr_") { do "_base_"%Remove("""_$piece(path,".",*)_""")")
-                do outstream.WriteLine(" } elseif "_propstr_".%Extends(""%Library.DynamicObject"") {")
-                do outstream.WriteLine("   set "_path_"=##class("_templateclass_").FormattedOutput("_propstr_",.ret) quit:$$$ISERR(ret)")
-            }
-             if $lg(info)="this" {
-                // $thisの場合、自己参照に陥るのを防ぐ
-                do outstream.WriteLine(" } elseif "_propstr_".%ClassName(1)="""_$lg(info,3)_""" {")
-                do outstream.WriteLine("   set ret=$$$ERROR(5001,""テンプレートとオブジェクトの型が一致しているため出力できません class=""_"_propstr_".%ClassName(1)) quit")
-            }
-            do outstream.WriteLine(" } elseif "_propstr_".%Extends("""_$lg(info,3)_""") {")
-            if $piece(path,".",*)["(" {
-                set cmd=$zstrip($replace(path,"%Get","%Set"),">W",")")
-                do outstream.WriteLine("   do "_cmd_","_templatestr_".FormattedOutput("_propstr_",.ret)) quit:$$$ISERR(ret)")
-            } else {
-                do outstream.WriteLine("   set "_path_"="_templatestr_".FormattedOutput("_propstr_",.ret) quit:$$$ISERR(ret)")
-            }
-            do outstream.WriteLine(" } else {")
-            do outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_"_propstr_".%ClassName(1)) quit")
-            do outstream.WriteLine(" }")
+            // オブジェクト形式の場合
+            do outstream.WriteLine(" if $isobject("_propstr_") {")
+            do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicObject"") {")
+            do outstream.WriteLine("   set "_path_"=##class("_templateclass_").Process("_propstr_",.ret) quit:$$$ISERR(ret)")
         }
+        if $lg(info)="this" {
+            // $thisの場合、自己参照に陥るのを防ぐ
+            do outstream.WriteLine(" } elseif "_propstr_".%ClassName(1)="""_$lg(info,3)_""" {")
+            do outstream.WriteLine("   set ret=$$$ERROR(5001,""テンプレートとオブジェクトの型が一致しているため出力できません class=""_"_propstr_".%ClassName(1)) quit")
+        }
+        do outstream.WriteLine(" } elseif "_propstr_".%Extends("""_$lg(info,3)_""") {")
+        if current["(" {
+            // リスト形式の場合
+            //set cmd=base_$zstrip($replace(current,"%Get","%Set"),">W",")")
+            do outstream.WriteLine("   do "_base_"%Push("_templatestr_".Process("_propstr_",.ret)) quit:$$$ISERR(ret)")
+        } else {
+            // オブジェクト形式の場合
+            do outstream.WriteLine("   set "_path_"="_templatestr_".Process("_propstr_",.ret) quit:$$$ISERR(ret)")
+        }
+        do outstream.WriteLine(" } else {")
+        do outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_"_propstr_".%ClassName(1)) quit")
+        do outstream.WriteLine(" }} else {")
+        // プロパティがNULLの場合
+        if current["(" {
+            do:$lg(info,5) outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"がNULLになっています"") quit")
+        } else {
+            do outstream.WriteLine("   "_$select('$lg(info,5):"do "_base_"%Remove("""_current_""")",1:"set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"がNULLになっています"") quit"))
+        }
+
+        do outstream.WriteLine(" }")
     }
     quit $$$OK
 }
@@ -305,24 +282,44 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) A
 /// プロパティ値の出力
 ClassMethod OutputProperty(outstream As %Stream, info As %List, path As %String) As %Status
 {
-    write "outputProperty",!
+    write "output Property",!
     set propstr=$select($lg(info,2)'="":"obj."_$lg(info,2),1:"obj")
+    set base=$piece(path,".",1,*-1)_".",current=$Piece(path,".",*)
 
     // リストの場合
     if $lg(info,6)'="" {
-        do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicArray"") {")
-        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  set "_path_"=""""""_v_""""""")
+        do outstream.WriteLine(" if "_propstr_"="""" {")
+        do outstream.WriteLine(" } elseif "_propstr_".%Extends(""%Library.DynamicArray"") {")
+        do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  do "_base_"%Push(v) }")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set v="_propstr_".GetNext(.key) quit:key=""""  set "_path_"=""""""_v_""""""")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set v="_propstr_".GetNext(.key) quit:key=""""  do "_base_"%Push(v) }")
         do outstream.WriteLine(" }")
     } else {
-        if $piece(path,".",*)["(" {
-            do outstream.WriteLine(" do "_$piece(path,".",1,*-1)_".%Push("_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:"")_")")
+        
+        if current["(" {
+            // Arrayの場合
+            do outstream.WriteLine(" do:"_propstr_"'="""" "_base_"%Push("_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:"")_")")
         } else {
+            // Objectの場合
+            do:'$lg(info,5) outstream.WriteLine(" if "_propstr_"="""" { do "_base_"%Remove("""_$piece(path,".",*)_""") } else {")
             do outstream.WriteLine(" set "_path_"="_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:""))
+            do:'$lg(info,5) outstream.WriteLine(" }")
         }
     }
     quit $$$OK
+}
+
+ClassMethod InitJSONString()
+{
+    kill %jsonstring
+}
+
+ClassMethod SetJSONString(code As %Stream.TmpCharacter, tpl As %DynamicAbstractObject) As %String
+{
+    set %jsonstring($increment(%jsonstring))=tpl
+    do code.WriteLine("")
+    do code.WriteLine("$tpl"_%jsonstring)
+    quit "tpl"_%jsonstring
 }
 
 }
