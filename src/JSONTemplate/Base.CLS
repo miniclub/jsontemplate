@@ -3,9 +3,6 @@ Include %occErrors
 Class JSONTemplate.Base Extends %RegisteredObject [ Abstract, DependsOn = JSONTemplate.Generator ]
 {
 
-/// タブ
-Parameter TABSIZE = 4;
-
 /// JSON出力する際のテンプレート
 /// JSONの値に#(..プロパティ名)#または#(..#パラメータ名)#を指定することで
 /// プロパティの値をJSON形式で出力できます。
@@ -27,8 +24,8 @@ Method OutputToDevice() As %Status
         set json=..Process($this,.ret)
         if $$$ISOK(ret) {
             set out=##class(%JSON.Formatter).%New()
-            set out.indent=4
-            do out.Format(json)
+            set out.Indent=1
+            set ret=out.Format(json)
         }
         quit ret
 }
@@ -72,8 +69,6 @@ Method OutputToStream(stream As %Stream) As %Status
     quit ret
 }
 
-Property %Indent As %Integer [ InitialExpression = 0 ];
-
 /// テンプレートからJSONデータを出力
 /// テンプレートを元にプロパティを挿入したJSONオブジェクトを返す
 ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicAbstractObject [ CodeMode = objectgenerator ]
@@ -85,6 +80,7 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
     }
     set ret=$$$OK,lineno=0
     try {
+        set %debug=$get(%debug,0)
         // プロパティの一覧と型を取得
         set key="" for {
             set pdef=%compiledclass.Properties.GetNext(.key)
@@ -92,7 +88,7 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
             set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
             //quit:$$$ISERR(ret)
             set display=$select(pdef.Parameters.GetAt("DISPLAYLIST")'=""||(pdef.Parameters.GetAt("FORMAT")'=""):1,1:0)
-            set classtype=$select($isobject(tdef)&&(tdef.ClassType="datatype"):"datatype",$extract(pdef.Type)="%":"datatype",1:"object")
+            set classtype=$select($isobject(tdef)&&(tdef.ClassType="datatype"):tdef.ClientDataType,$extract(pdef.Type)="%":tdef.ClientDataType,1:"")
 
             set props(pdef.Name)=$lb(pdef.Type,classtype,pdef.Required,pdef.Collection,display)
         }
@@ -143,6 +139,38 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
         set ret=$SYSTEM.Status.AppendStatus($$$ERROR(5001,"エラーが発生しました"),err.AsStatus())
     }
     quit ret
+}
+
+Method %OnNew(initvalue As %DynamicObject = "") As %Status
+{
+    quit:initvalue="" $$$OK
+    quit:'$isobject(initvalue)||('initvalue.%IsA("%DynamicObject")) $$$ERROR(5001,"%DynamicObjectを継承したインスタンスを指定してください")
+    set ret=$$$OK
+    try {
+        set iter=initvalue.%GetIterator()
+#if $SYSTEM.Version.GetMajor()>2021
+        while iter.%GetNext(.mkey,.value,.mtype) {
+#Else
+        while iter.%GetNext(.mkey,.value) {
+            set mtype=$select($isobject(value):$select(value.%IsA("%DynamicArray"):"object",1:"array"),1:"string")
+#Endif
+            set $property($this,mkey)=value
+#if $SYSTEM.Version.GetMajor()>2021
+        }
+#else
+        }
+#endif
+    } catch err {
+        set ret=err.AsStatus()
+    }
+    quit ret
+}
+
+/// コードからインスタンスを取得
+/// 継承先にて実装
+ClassMethod GetByCode(code As %String) As JSONTemplate.Base [ Abstract ]
+{
+	quit ""
 }
 
 }

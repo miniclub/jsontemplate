@@ -27,11 +27,18 @@ OutputToDeviceメソッドを実行することで、XDATA に記述されたjso
 
 ## 使用時
 1) 作成したクラスのインスタンスを作成
+    set obj=##class(テンプレートクラス名).%New()
+
+    以下のように%New()のパラメータに%DynamicObjectを設定することで、各プロパティに値を代入することも可能です。
+    この場合、プロパティに存在しないキーを指定すると、その内容は無視されます。
+
+    set obj=##class(テンプレートクラス名).%New({"code":"A001","display":"テストコード"})
+
 2) プロパティに値を設定
     プロパティには指定されたクラスのインスタンスだけでなく%DynamicObjectも使用できますので、
     set obj.Property={"param1":"xxxx","param2": "yyy"}
     といった記述も可能です。
-3) OutputToDevice、OutputToFileメソッドを実行
+3) OutputToDevice、OutputToFile、OutputToDeviceメソッドを実行
 
 
 # 収録クラス

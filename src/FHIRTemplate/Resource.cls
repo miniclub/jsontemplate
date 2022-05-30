@@ -1,5 +1,5 @@
 /// 患者リソース
-Class FHIRTemplate.Resource Extends (FHIRTemplate.Reference, FHIRTemplate.Bundle.entry)
+Class FHIRTemplate.Resource Extends (FHIRTemplate.ResourceBase, FHIRTemplate.Bundle.entry)
 {
 
 /// JSON出力する際のテンプレート)
@@ -12,7 +12,7 @@ XData Template [ MimeType = application/json ]
 {
   "resourceType": "#(..#ResourceType)#",
   "meta": {
-    "profile": "#(..#Profile)#"
+    "profile": ["#(..#Profile)#"]
   }
 }
 }

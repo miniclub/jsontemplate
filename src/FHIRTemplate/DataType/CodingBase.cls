@@ -1,10 +1,10 @@
-Class FHIRTemplate.DataType.Coding Extends JSONTemplate.Base
+Class FHIRTemplate.DataType.CodingBase Extends JSONTemplate.Base [ Abstract ]
 {
 
 XData Template [ MimeType = application/json ]
 {
 {
-        "system":"#(..system)#",
+        "system":"#(..#CodeSystem)#",
         "version":"#(..version)#",
         "code": "#(..code)#",
         "display":"#(..display)#",
@@ -12,7 +12,7 @@ XData Template [ MimeType = application/json ]
 }
 }
 
-Property system As %String(MAXLEN = 1000);
+Parameter CodeSystem;
 
 Property display As %String;
 
@@ -21,5 +21,11 @@ Property code As %String;
 Property version As %String;
 
 Property userSelected As %Boolean;
+
+/// コードによるインスタンスの取得
+ClassMethod GetByCode(code As %String) As CodingBase
+{
+        quit $$$NULLOREF
+}
 
 }

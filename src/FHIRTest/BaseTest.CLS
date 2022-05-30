@@ -11,6 +11,7 @@ XData Template [ MimeType = application/json ]
     "p4":"#(..Param2)#",
     "p5":"aaaaaa#(..Param1)#",
     "o1":"#(..Obj1)#",
+    "o2":"#(..CodeObj)#",
     "a1":[
         {
             "p1":"1234",
@@ -34,6 +35,8 @@ Property Param1 As %String;
 
 Property Param2 As %Numeric;
 
+Property CodeObj As BaseCodeTest;
+
 Property Obj1 As BaseTest2;
 
 Property Obj2 As BaseTest2;
@@ -47,6 +50,7 @@ ClassMethod Test1()
     set obj=..%New()
     set obj.Param1="gggggg"
     set obj.Param2=1234.5
+    set obj.CodeObj=##class(BaseCodeTest).GetByCode(1)
     set obj.Obj1=##class(BaseTest2).%New()
     set obj.Obj1.Param1="qqqqqq"
     set obj.Obj1.Param2=11111

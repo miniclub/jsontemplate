@@ -16,7 +16,7 @@ XData Template [ MimeType = application/json ]
   },
   "identifier": [
     {
-      "system": "urn:oid:1.2.392.100495.20.3.51.1#(..HospitalId)#",
+      "system": "urn:oid:1.2.392.100495.20.3.51.1#(..MedInstCode)#",
       "value": "#(..PatientId)#"
     }
   ],
@@ -29,7 +29,7 @@ XData Template [ MimeType = application/json ]
         }
       ],
       "use": "official",
-      "text": "  #(..LastName)# #(..FirstName)#",
+      "text": "#(..LastName)# #(..FirstName)#",
       "family": "#(..LastName)#",
       "given": [
         "#(..FirstName)#"
@@ -89,8 +89,10 @@ Property Gender As %String(DISPLAYLIST = ",male,female", VALUELIST = ",1,2");
 
 Property PostalCode As %String;
 
-Property HospitalId As %String;
+/// 医療機関コード
+Property MedInstCode As %String;
 
+/// 患者ID
 Property PatientId As %String;
 
 Property Address As %String;
