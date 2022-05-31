@@ -1,3 +1,4 @@
 Class FHIRTemplate.Examples.PatientIdentifier
 {
+
 }

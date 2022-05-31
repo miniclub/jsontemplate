@@ -1,9 +1,9 @@
 Class FHIRTemplate.DataType.Period Extends JSONTemplate.Base
 {
 
-Property start As %Date(FORMAT = 3);
+Property start As TimeStamp;
 
-Property end As %Date(FORMAT = 3);
+Property end As TimeStamp;
 
 XData Template [ MimeType = application/json ]
 {

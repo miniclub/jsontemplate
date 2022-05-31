@@ -64,22 +64,19 @@ XData Template [ MimeType = application/json ]
             "value":"#(..PatientStatusValue)#"
         }
     ],
-    "clinicalStatus":"#(..ClinicalStatus(FHIRTemplate.DataType.CodeableConcept))#",
-    "verificationStatus" : "#(..VerificationStatus(FHIRTemplate.DataType.CodeableConcept))#",
-    "code": "#(..Code(FHIRTemplate.DataType.CodeableConcept))#",
-    "bodySite": [ "#(..BodySite(FHIRTemplate.DataType.CodeableConcept))#" ],
-    "subject" : {
-        "reference" : "urn:uuid:#(..Patient)#",
-        "display" : "#(..PatientDisplayName)#"
-    },
+    "clinicalStatus":"#(..ClinicalStatus)#",
+    "verificationStatus" : "#(..VerificationStatus)#",
+    "code": "#(..Code)#",
+    "bodySite": [ "#(..BodySite)#" ],
+    "subject" : "#(..Patient(FHIRTemplate.Reference))#",
     "encounter":{
         "reference":"urn:uuid:#(..Encounter)#"
     },
-    "onsetAge": "#(..Age(FHIRTemplate.DataType.Age))#",
+    "onsetAge": "#(..Age)#",
     "recordedDate": "#(..RecordedDate)#",
     "evidence": [
         {
-            "code": [ "#(..EvidenceCode(FHIRTemplate.DataType.CodeableConcept))#"],
+            "code": [ "#(..EvidenceCode)#"],
             "detail":[
                 {
                     "reference": "urn:uuid:#(..EvidenceDetail)#"

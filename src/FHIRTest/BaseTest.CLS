@@ -51,9 +51,10 @@ ClassMethod Test1()
     set obj.Param1="gggggg"
     set obj.Param2=1234.5
     set obj.CodeObj=##class(BaseCodeTest).GetByCode(1)
-    set obj.Obj1=##class(BaseTest2).%New()
-    set obj.Obj1.Param1="qqqqqq"
-    set obj.Obj1.Param2=11111
+    set obj.Obj1=##class(BaseTest2).%New({
+        "Param1":"qqqqq",
+        "Param2":1111
+    })
     set obj.Obj2=##class(BaseTest2).%New()
     set obj.Obj2.Param1="wwwwwww"
     set obj.Obj2.Param2=22222

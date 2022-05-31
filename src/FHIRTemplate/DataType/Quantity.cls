@@ -17,6 +17,7 @@ XData Template [ MimeType = application/json ]
 {
 {
         "value":"#(..value)#",
+        "comparator":"#(..comparator)#",
         "unit": "#(..unit)#",
         "system":"#(..#SYSTEM)#",
         "code": "#(..code)#"
