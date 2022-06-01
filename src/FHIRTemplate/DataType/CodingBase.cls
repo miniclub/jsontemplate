@@ -1,4 +1,4 @@
-Class FHIRTemplate.DataType.Coding Extends JSONTemplate.Base
+Class FHIRTemplate.DataType.CodingBase Extends JSONTemplate.Base
 {
 
 Parameter CodeSystem;
