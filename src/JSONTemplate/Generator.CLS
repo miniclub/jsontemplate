@@ -67,7 +67,7 @@ ClassMethod GenerateObject(outstream As %Stream, type As %String, template As %D
                 }
                 if $lg(info)="prop" {
                     // プロパティの場合
-                    if $lg(info,4)'="datatype" {
+                    if $lg(info,4)="" {
                         do ..OutputObject(outstream, info, path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
                     } else {
                         do ..OutputProperty(outstream, info, path_"."_$select(type="object":mkey,1:"%Get("_mkey_")"))
@@ -151,7 +151,7 @@ ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props
         } elseif $extract(token,1,3)="..#" {
             // パラメータ値代入
             set token=$extract(token,4,*)
-            write "パラメータ:",token,!
+            write:%debug "パラメータ:",token,!
             // パラメータチェック
             if token="" {
                 set ret=$$$ERROR(5001,"パラメータ名が存在しません")
@@ -165,7 +165,7 @@ ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props
         } elseif $extract(token,1,2)=".." {
             set token=$extract(token,3,*)
             // パラメータチェック
-            write "プロパティ:",token,!
+            write:%debug "プロパティ:",token,!
             // テンプレートクラスチェック
             if token["(" {
                 set templateclass=$piece($piece(token,")"),"(",2)
@@ -197,7 +197,7 @@ ClassMethod GetParamInfo(token As %String, ByRef info, ByRef params, ByRef props
 /// パラメータ値の出力
 ClassMethod OutputParameter(outstream As %Stream, param As %String, path As %String) As %Status
 {
-    write "output parameter",!
+    write:%debug "output parameter",!
     set base=$piece(path,".",1,*-1)_".",current=$piece(path,".",*)
     if $piece(path,".",*)["(" {
         set cmd=base_$zstrip($replace(current,"%Get","%Push"),">W",")")
@@ -211,7 +211,7 @@ ClassMethod OutputParameter(outstream As %Stream, param As %String, path As %Str
 /// 固定文字列の出力
 ClassMethod OutputValue(outstream As %Stream, value As %String, path As %String) As %Status
 {
-    write "output value",!
+    write:%debug "output value",!
     set base=$piece(path,".",1,*-1)_"."
     do outstream.WriteLine(" do "_base_"%Push("_$select((+value)=value:value,1:""""_$replace(value,"""","""""")_""")"))
     quit $$$OK
@@ -220,7 +220,7 @@ ClassMethod OutputValue(outstream As %Stream, value As %String, path As %String)
 /// オブジェクト出力
 ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) As %Status
 {
-    write "output Object",!
+    write:%debug "output Object",!
     set propstr=$select($lg(info,2)'="":"obj."_$lg(info,2),1:"obj")
     set templatestr=$select($lg(info,8)'="":"##class("_$lg(info,8)_")",1:propstr)
     set templateclass=$select($lg(info,8)'="":$lg(info,8),1:$lg(info,3))
@@ -264,9 +264,16 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) A
             // オブジェクト形式の場合
             do outstream.WriteLine("   set "_path_"="_templatestr_".Process("_propstr_",.ret) quit:$$$ISERR(ret)")
         }
+        do outstream.WriteLine(" } else { set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_"_propstr_".%ClassName(1)) quit }")
+        
+        /*
+        // GetByCodeメソッドが存在する場合(Abstract=0)、プロパティに文字列が指定されるとその文字からオブジェクトを取得する
+        set mdef=##class(%Dictionary.CompiledMethod).%OpenId($lg(info,3)_"||GetByCode")
+        if $isobject(mdef)&&('mdef.Abstract) {
+            do outstream.WriteLine(" } elseif "_propstr_"'="""" { set "_path_"=##class("_templateclass_").Process(##class("_templateclass_").GetByCode("_propstr_"),.ret)")
+        }
+        */
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"の型が誤っています class=""_"_propstr_".%ClassName(1)) quit")
-        do outstream.WriteLine(" }} else {")
         // プロパティがNULLの場合
         if current["(" {
             do:$lg(info,5) outstream.WriteLine("   set ret=$$$ERROR(5001,""プロパティ"_$lg(info,2)_"がNULLになっています"") quit")
@@ -282,7 +289,7 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) A
 /// プロパティ値の出力
 ClassMethod OutputProperty(outstream As %Stream, info As %List, path As %String) As %Status
 {
-    write "output Property",!
+    write:%debug "output Property",!
     set propstr=$select($lg(info,2)'="":"obj."_$lg(info,2),1:"obj")
     set base=$piece(path,".",1,*-1)_".",current=$Piece(path,".",*)
 
@@ -302,7 +309,15 @@ ClassMethod OutputProperty(outstream As %Stream, info As %List, path As %String)
         } else {
             // Objectの場合
             do:'$lg(info,5) outstream.WriteLine(" if "_propstr_"="""" { do "_base_"%Remove("""_$piece(path,".",*)_""") } else {")
-            do outstream.WriteLine(" set "_path_"="_propstr_$select($lg(info,7):"LogicalToDisplay("_propstr_")",1:""))
+            if $lg(info,7) {
+                // DISPLAYLIST,VALUELISTがある場合
+                do outstream.WriteLine(" set "_path_"="_propstr_"LogicalToDisplay("_propstr_")")
+            } elseif ",INTEGER,NUMERIC,DOUBLE,BIGINT,"[(","_$lg(info,4)_",") {
+                // 数値型の場合、+演算子を使って数値化
+                do outstream.WriteLine(" set "_path_"=+("_propstr_")")
+            } else {
+                do outstream.WriteLine(" set "_path_"="_propstr)
+            }
             do:'$lg(info,5) outstream.WriteLine(" }")
         }
     }

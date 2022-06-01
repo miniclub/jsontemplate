@@ -12,7 +12,8 @@ XData Template [ MimeType = application/json ]
 			"code": "#(..code)#",
 			"display": "#(..display)#"
 		}
-	]
+	],
+	"text": "#(..text)#"
 }
 }
 
@@ -21,5 +22,7 @@ Property system As %String;
 Property code As %String;
 
 Property display As %String;
+
+Property text As %String;
 
 }

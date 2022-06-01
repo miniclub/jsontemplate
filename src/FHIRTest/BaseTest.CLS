@@ -34,7 +34,7 @@ Property Param1 As %String;
 
 Property Param2 As %Numeric;
 
-Property Obj1 As BaseTest2;
+Property Obj1 As FHIRCustom.Coding.ByomeiCode;
 
 Property Obj2 As BaseTest2;
 
@@ -44,12 +44,11 @@ Property List2 As list Of BaseTest2;
 
 ClassMethod Test1()
 {
+    
     set obj=..%New()
     set obj.Param1="gggggg"
     set obj.Param2=1234.5
-    set obj.Obj1=##class(BaseTest2).%New()
-    set obj.Obj1.Param1="qqqqqq"
-    set obj.Obj1.Param2=11111
+    set obj.Obj1=##class(FHIRCustom.Coding.ByomeiCode).GetByCode("B0EF")
     set obj.Obj2=##class(BaseTest2).%New()
     set obj.Obj2.Param1="wwwwwww"
     set obj.Obj2.Param2=22222
@@ -67,6 +66,7 @@ ClassMethod Test1()
 
     set a=##class(%Stream.FileCharacter).%New()
     set a.Filename="c:\temp\basetest2.json"
+    set a.TranslateTable="UTF8"
     set ret=obj.OutputToStream(a)
     if $$$ISOK(ret) {
         do a.%Save()

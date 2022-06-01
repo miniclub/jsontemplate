@@ -1,12 +1,16 @@
 Class FHIRTemplate.DataType.Coding Extends JSONTemplate.Base
 {
 
+Parameter CodeSystem;
+
 XData Template [ MimeType = application/json ]
 {
 {
         "system":"#(..system)#",
+        "version":"#(..version)#",
         "code": "#(..code)#",
-        "display":"#(..display)#"
+        "display":"#(..display)#",
+        "userSelected":"#(..userSelected)#"
 }
 }
 
