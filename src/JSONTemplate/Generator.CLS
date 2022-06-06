@@ -337,4 +337,26 @@ ClassMethod SetJSONString(code As %Stream.TmpCharacter, tpl As %DynamicAbstractO
     quit "tpl"_%jsonstring
 }
 
+/// 対象クラスのプロパティの一覧を取得する
+/// props(プロパティ名)=$lb(プロパティクラス,クライアントデータタイプ,Requiredかどうか,コレクションかどうか,LogicalToDisplayを使用するかどうか)
+ClassMethod GetPropertyList(compiledclass As %Dictionary.CompiledClass, ByRef props) As %Status
+{
+    set ret=$$$OK
+    try {
+        set key="" for {
+            set pdef=compiledclass.Properties.GetNext(.key)
+            quit:key=""
+            set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
+            //quit:$$$ISERR(ret)
+            set display=$select(pdef.Parameters.GetAt("DISPLAYLIST")'=""||(pdef.Parameters.GetAt("FORMAT")'=""):1,1:0)
+            set classtype=$select($isobject(tdef)&&(tdef.ClassType="datatype"):tdef.ClientDataType,$extract(pdef.Type)="%":tdef.ClientDataType,1:"")
+
+            set props(pdef.Name)=$lb(pdef.Type,classtype,pdef.Required,pdef.Collection,display)
+        }
+    } catch err {
+        set ret=err.AsStatus()
+    }
+    quit ret
+}
+
 }

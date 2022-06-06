@@ -1,5 +1,5 @@
 /// JLAC10Codeマスターサンプル
-Class FHIRMaster.JLAC10Code Extends %Persistent
+Class FHIRMaster.DB.JLAC10Code Extends %Persistent
 {
 
 /// コード
@@ -59,11 +59,11 @@ Storage Default
 <Value>CompanyName</Value>
 </Value>
 </Data>
-<DataLocation>^FHIRMaster.JLAC10CodeD</DataLocation>
+<DataLocation>^FHIRMaster.DB.JLAC10CodeD</DataLocation>
 <DefaultData>JLAC10CodeDefaultData</DefaultData>
-<IdLocation>^FHIRMaster.JLAC10CodeD</IdLocation>
-<IndexLocation>^FHIRMaster.JLAC10CodeI</IndexLocation>
-<StreamLocation>^FHIRMaster.JLAC10CodeS</StreamLocation>
+<IdLocation>^FHIRMaster.DB.JLAC10CodeD</IdLocation>
+<IndexLocation>^FHIRMaster.DB.JLAC10CodeI</IndexLocation>
+<StreamLocation>^FHIRMaster.DB.JLAC10CodeS</StreamLocation>
 <Type>%Storage.Persistent</Type>
 }
 

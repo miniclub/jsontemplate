@@ -82,16 +82,7 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
     try {
         set %debug=$get(%debug,0)
         // プロパティの一覧と型を取得
-        set key="" for {
-            set pdef=%compiledclass.Properties.GetNext(.key)
-            quit:key=""
-            set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
-            //quit:$$$ISERR(ret)
-            set display=$select(pdef.Parameters.GetAt("DISPLAYLIST")'=""||(pdef.Parameters.GetAt("FORMAT")'=""):1,1:0)
-            set classtype=$select($isobject(tdef)&&(tdef.ClassType="datatype"):tdef.ClientDataType,$extract(pdef.Type)="%":tdef.ClientDataType,1:"")
-
-            set props(pdef.Name)=$lb(pdef.Type,classtype,pdef.Required,pdef.Collection,display)
-        }
+        set ret=##class(JSONTemplate.Generator).GetPropertyList(%compiledclass,.props)
         quit:$$$ISERR(ret)
 
         // パラメータの一覧を取得
@@ -141,32 +132,35 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
     quit ret
 }
 
-Method %OnNew(initvalue As %DynamicObject = "") As %Status
+Method %OnNew(initvalue As %DynamicObject = "") As %Status [ CodeMode = objectgenerator ]
 {
-    quit:initvalue="" $$$OK
-    quit:'$isobject(initvalue)||('initvalue.%IsA("%DynamicObject")) $$$ERROR(5001,"%DynamicObjectを継承したインスタンスを指定してください")
-    set ret=$$$OK
-    try {
+    quit:%class.Abstract $$$OK
+    do %code.WriteLine(" quit:initvalue="""" $$$OK")
+    do %code.WriteLine(" quit:'$isobject(initvalue)||('initvalue.%IsA(""%DynamicObject"")) $$$ERROR(5001,""%DynamicObjectを継承したインスタンスを指定してください"")")
+    do %code.WriteLine(" set ret=$$$OK try {")
+
+    set key="" for {
+        set pdef=%compiledclass.Properties.GetNext(.key)
+        quit:key=""
+
+        set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
+        if $isobject(tdef) {
+            
+        }
+
+    }
         set iter=initvalue.%GetIterator()
-#if $SYSTEM.Version.GetMajor()>2021
-        while iter.%GetNext(.mkey,.value,.mtype) {
-#Else
         while iter.%GetNext(.mkey,.value) {
             set mtype=$select($isobject(value):$select(value.%IsA("%DynamicArray"):"object",1:"array"),1:"string")
-#Endif
             set $property($this,mkey)=value
-#if $SYSTEM.Version.GetMajor()>2021
         }
-#else
-        }
-#endif
-    } catch err {
-        set ret=err.AsStatus()
-    }
+    do %code.WriteLine("} catch err {")
+    do %code.WriteLine("    set ret=err.AsStatus()")
+    do %code.WriteLine("}")
     quit ret
 }
 
-/// コードからインスタンスを取得
+/// コード文字列からインスタンスを取得
 /// 継承先にて実装
 ClassMethod GetByCode(code As %String) As JSONTemplate.Base [ Abstract ]
 {
