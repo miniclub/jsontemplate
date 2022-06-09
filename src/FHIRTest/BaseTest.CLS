@@ -23,7 +23,7 @@ XData Template [ MimeType = application/json ]
         "#(..List2)#",
         {
             "p1":5678,
-            "o2":"#(..Obj2)#"
+            "o2":"#(..Obj2(BaseTest3))#"
         },
         "#(..Obj1)#"
     ]

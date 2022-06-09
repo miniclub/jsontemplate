@@ -234,7 +234,7 @@ ClassMethod OutputObject(outstream As %Stream, info As %List, path As %String) A
         do outstream.WriteLine(" if "_propstr_".%Extends(""%Library.DynamicArray"") {")
         do outstream.WriteLine("   set iter="_propstr_".%GetIterator() for loop=1:1 { quit:'iter.%GetNext(.k,.v)  do "_base_"%Push(##class("_templateclass_").Process(v,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         do outstream.WriteLine(" } else {")
-        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  do "_base_"%Push("_templatestr_".Process(obj2,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
+        do outstream.WriteLine("   set key="""" for loop=1:1 { set obj2="_propstr_".GetNext(.key) quit:key=""""  do "_base_"%Push(##class("_templateclass_").Process(obj2,.ret)) quit:$$$ISERR(ret) } quit:$$$ISERR(ret)")
         do outstream.WriteLine(" }}")
     } else {
         // プロパティがオブジェクトの場合
