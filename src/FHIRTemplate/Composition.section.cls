@@ -46,4 +46,21 @@ ClassMethod CreateSection(code As %String, title As %String = "", ByRef sc As %S
   quit obj
 }
 
+/// リソースの取得
+Method GetResources(br As FHIRTemplate.Util.BundleResource)
+{
+  set key="" for {
+    set entry=..entry.GetNext(.key)
+    quit:key=""
+
+    do br.AddResource(entry)
+  }
+  set key="" for {
+    set section=..section.GetNext(.key)
+    quit:key=""
+
+    do section.GetResources(br)
+  }
+}
+
 }

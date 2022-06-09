@@ -45,7 +45,7 @@ Property List1 As list Of %String;
 
 Property List2 As list Of BaseTest2;
 
-ClassMethod Test1()
+ClassMethod Test1(ByRef out)
 {
     set obj=..%New()
     set obj.Param1="gggggg"
@@ -70,8 +70,35 @@ ClassMethod Test1()
     set obj1.Param2=4444    
     do obj.List2.Insert(obj1)
 
+    set ret=obj.OutputToDynamicObject(.out)
     set a=##class(%Stream.FileCharacter).%New()
+    set a.TranslateTable="UTF8"
     set a.Filename="c:\temp\basetest2.json"
+    set ret=obj.OutputToStream(a)
+    if $$$ISOK(ret) {
+        do a.%Save()
+        use 0 write "正常終了",!
+    }else {
+        use 0 write "エラー発生",!
+        do $SYSTEM.OBJ.DisplayError(ret)
+    }
+}
+
+ClassMethod Test2()
+{
+    set obj=..%New({
+      "Param1":"日本語",
+      "CodeObj": 3,
+      "Obj1":{
+          "Param1":"子オブジェクト",
+          "Param2": 123.56
+      },
+      "List1":["list array 1","list array 2"],
+      "List2":[{"Param1": "array object 1"},{"Param1": "array object 2"}]
+    })
+    set a=##class(%Stream.FileCharacter).%New()
+    set a.TranslateTable="UTF8"
+    set a.Filename="c:\temp\basetest2_test2.json"
     set ret=obj.OutputToStream(a)
     if $$$ISOK(ret) {
         do a.%Save()

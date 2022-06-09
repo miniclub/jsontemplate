@@ -69,6 +69,14 @@ Method OutputToStream(stream As %Stream) As %Status
     quit ret
 }
 
+/// ダイナミックオブジェクトへの出力
+Method OutputToDynamicObject(ByRef obj As %DynamicAbstractObject) As %Status
+{
+    set ret=$$$OK
+    set obj=..Process($this,.ret)
+    quit ret
+}
+
 /// テンプレートからJSONデータを出力
 /// テンプレートを元にプロパティを挿入したJSONオブジェクトを返す
 ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicAbstractObject [ CodeMode = objectgenerator ]
@@ -116,7 +124,7 @@ ClassMethod Process(obj As %RegisteredObject, ByRef ret As %Status) As %DynamicA
             set line=code.ReadLine()
             if $zstrip(line,"<>W")?1"$tpl"1.N {
                 // $tplで始まる行があれば、JSON文字列出力
-                write "line "_line,!
+                write:%debug "line "_line,!
                 do %code.WriteLine("  set "_$piece(line,"$",2)_"="_%jsonstring(+$piece(line,"$tpl",2)).%ToJSON())
             } else {
                 do %code.WriteLine("   "_line)
@@ -139,24 +147,38 @@ Method %OnNew(initvalue As %DynamicObject = "") As %Status [ CodeMode = objectge
     do %code.WriteLine(" quit:'$isobject(initvalue)||('initvalue.%IsA(""%DynamicObject"")) $$$ERROR(5001,""%DynamicObjectを継承したインスタンスを指定してください"")")
     do %code.WriteLine(" set ret=$$$OK try {")
 
+    set ret=$$$OK
     set key="" for {
         set pdef=%compiledclass.Properties.GetNext(.key)
         quit:key=""
+        continue:pdef.Name["%"
 
         set tdef=##class(%Dictionary.ClassDefinition).%OpenId(pdef.Type,,.ret)
         if $isobject(tdef) {
-            
+            if $classmethod(pdef.Type,"%Extends","JSONTemplate.Base") {
+                if pdef.Collection'="" {
+                    do %code.WriteLine(" if $isobject(initvalue."_pdef.Name_") { if 'initvalue."_pdef.Name_".%Extends(""%Library.DynamicArray"") { set ret=$$$ERROR(5001,""プロパティ"_pdef.Name_"はリストコレクションです"") quit }")
+                    do %code.WriteLine("   set iter=initvalue."_pdef.Name_".%GetIterator() while iter.%GetNext(.mkey,.mval) { do:$isobject(mval) .."_pdef.Name_".Insert(##class("_pdef.Type_").%New(mval)) }}")
+                } else {
+                    do %code.WriteLine(" set:$isobject(initvalue."_pdef.Name_") .."_pdef.Name_"=##class("_pdef.Type_").%New(initvalue."_pdef.Name_")")
+                }
+            } else {
+                if pdef.Collection'="" {
+                    do %code.WriteLine(" if $isobject(initvalue."_pdef.Name_") { if 'initvalue."_pdef.Name_".%Extends(""%Library.DynamicArray"") { set ret=$$$ERROR(5001,""プロパティ"_pdef.Name_"はリストコレクションです"") quit }")
+                    do %code.WriteLine("   set iter=initvalue."_pdef.Name_".%GetIterator() while iter.%GetNext(.mkey,.mval) { do .."_pdef.Name_".Insert(mval) }}")
+                } else {
+                    do %code.WriteLine(" set .."_pdef.Name_"=initvalue."_pdef.Name)
+                }
+            }
+        } else {
+            set ret=$$$ERROR(5001,"プロパティ"_pdef.Name_"の型"_pdef.Type_"がありません")
+            quit
         }
-
+        quit:$$$ISERR(ret)
     }
-        set iter=initvalue.%GetIterator()
-        while iter.%GetNext(.mkey,.value) {
-            set mtype=$select($isobject(value):$select(value.%IsA("%DynamicArray"):"object",1:"array"),1:"string")
-            set $property($this,mkey)=value
-        }
     do %code.WriteLine("} catch err {")
     do %code.WriteLine("    set ret=err.AsStatus()")
-    do %code.WriteLine("}")
+    do %code.WriteLine("} quit ret")
     quit ret
 }
 

@@ -13,10 +13,8 @@ XData Template [ MimeType = application/json ]
   "type": "document",
   "timestamp": "#(..TimeStamp)#",
   "entry": [
-    "#(..Composition(FHIRTemplate.Bundle.entry))#",
-    "#(..Patient(FHIRTemplate.Bundle.entry))#",
-    "#(..Practitioner(FHIRTemplate.Bundle.entry))#"
-  ],
+    "#(..Resource(FHIRTemplate.Bundle.entry))#"
+      ],
   "signature": {
     "type":"a"
   }
@@ -29,10 +27,22 @@ Parameter Profile = "jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Bun
 
 Property TimeStamp As FHIRTemplate.DataType.TimeStamp;
 
-Property Composition As Composition [ Required ];
+Property Resource As list Of Resource;
 
-Property Patient As Patient [ Required ];
+/// FHIRドキュメントの作成
+ClassMethod CreateFHIRDocument(composition As Composition) As Bundle
+{
+  set obj=..%New()
+  
+  // bundleリソース管理クラスのインスタンスを取得
+  set br=##class(FHIRTemplate.Util.BundleResource).%New()
 
-Property Practitioner As list Of Practitioner;
+  // 指定されたCompositionリソースから関連するリソースを取得
+  do composition.GetResources(br)
+
+  // 取得した関連リソースをBundleに登録
+  do br.ExportResources(obj.Resources)
+  quit obj
+}
 
 }

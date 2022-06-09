@@ -70,22 +70,43 @@ Property docCategory As FHIRTemplate.Examples.DocCategory;
 
 Property subject As Patient;
 
+Property author As Practitioner;
+
+Property attester As Practitioner;
+
+Property authorOrg As Organization;
+
+Property custodian As Organization;
+
 Property encounter As Encounter;
 
 Property date As FHIRTemplate.DataType.TimeStamp(FORMAT = 1);
 
-Property author As Practitioner;
-
-Property authorOrg As Organization;
-
 Property title As %String;
-
-Property custodian As Organization;
 
 Property eventCode As FHIRTemplate.DataType.Coding;
 
 Property eventPeriod As FHIRTemplate.DataType.Period;
 
 Property section As list Of FHIRTemplate.Composition.section;
+
+Method GetResources(br As FHIRTemplate.Util.BundleResource)
+{
+  // 自分自身を登録
+  do br.AddResource($this)
+  do br.AddResource(..subject)
+  do br.AddResource(..author)
+  do br.AddResource(..attester)
+  do br.AddResource(..authorOrg)
+  do br.AddResource(..custodian)
+  do br.AddResource(..encounter)
+  set key="" for {
+    set section=..section.GetNext(.key)
+    quit:key=""
+
+    do section.GetResources(br)
+  }
+  quit
+}
 
 }

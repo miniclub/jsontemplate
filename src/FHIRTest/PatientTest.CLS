@@ -1,7 +1,7 @@
 Class FHIRTest.PatientTest
 {
 
-ClassMethod Test1()
+ClassMethod Test1(ByRef out)
 {
     #dim obj as FHIRTemplate.Patient
     set obj=##class(FHIRTemplate.Patient).%New()
@@ -21,6 +21,7 @@ ClassMethod Test1()
         use 0 write "エラー発生",!
         do $SYSTEM.OBJ.DisplayError(ret)
     }
+    set ret=obj.OutputToDynamicObject(.out)
 }
 
 }

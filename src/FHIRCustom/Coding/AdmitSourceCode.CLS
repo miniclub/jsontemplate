@@ -1,5 +1,5 @@
 /// 文書カテゴリ
-Class FHIRTemplate.Examples.AdmitSourceCode Extends (%Persistent, FHIRTemplate.DataType.CodingBase)
+Class FHIRCustom.Coding.AdmitSourceCode Extends (%Persistent, FHIRTemplate.DataType.CodingBase)
 {
 
 Parameter CodeSystem = "http://jpfhir.jp/fhir/Common/CodeSystem/admit-Source";
@@ -7,7 +7,7 @@ Parameter CodeSystem = "http://jpfhir.jp/fhir/Common/CodeSystem/admit-Source";
 Index IDKeyIdx On code [ IdKey, Unique ];
 
 /// コードからインスタンスを取得
-ClassMethod GetByCode(code As %String) As DocType
+ClassMethod GetByCode(code As %String) As FHIRTemplate.DataType.CodingBase
 {
     set obj=..%OpenId(code)
     quit obj
@@ -58,11 +58,11 @@ Storage Default
 <Value>userSelected</Value>
 </Value>
 </Data>
-<DataLocation>^FHIRTemplaE049.AdmitSource5D50D</DataLocation>
+<DataLocation>^FHIRCustomF1F6.AdmitSource5D50D</DataLocation>
 <DefaultData>AdmitSourceCodeDefaultData</DefaultData>
-<IdLocation>^FHIRTemplaE049.AdmitSource5D50D</IdLocation>
-<IndexLocation>^FHIRTemplaE049.AdmitSource5D50I</IndexLocation>
-<StreamLocation>^FHIRTemplaE049.AdmitSource5D50S</StreamLocation>
+<IdLocation>^FHIRCustomF1F6.AdmitSource5D50D</IdLocation>
+<IndexLocation>^FHIRCustomF1F6.AdmitSource5D50I</IndexLocation>
+<StreamLocation>^FHIRCustomF1F6.AdmitSource5D50S</StreamLocation>
 <Type>%Storage.Persistent</Type>
 }
 

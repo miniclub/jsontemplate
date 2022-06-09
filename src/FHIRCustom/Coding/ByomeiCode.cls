@@ -1,10 +1,10 @@
-Class FHIRTemplate.Examples.ByomeiCode Extends FHIRTemplate.DataType.CodingBase
+Class FHIRCustom.Coding.ByomeiCode Extends FHIRTemplate.DataType.CodingBase
 {
 
 Parameter CodeSystem = "urn:oid:1.2.392.200119.4.101.6";
 
 /// コードからインスタンスを取得
-ClassMethod GetByCode(code As %String) As JLAC10Code
+ClassMethod GetByCode(code As %String) As FHIRCustom.Coding.ByomeiCode
 {
         set display=""
         &SQL(SELECT Name INTO :display FROM FHIRMaster.ByomeiCode WHERE code = :code)

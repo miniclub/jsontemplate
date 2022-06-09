@@ -1,11 +1,11 @@
 /// 入院外来分類
-Class FHIRTemplate.Examples.ActCode Extends FHIRTemplate.DataType.CodingBase
+Class FHIRCustom.Coding.ActCode Extends FHIRTemplate.DataType.CodingBase
 {
 
 Parameter CodeSystem = "http://terminology.hl7.org/CodeSystem/v3-ActCode";
 
 /// コードからインスタンスを取得
-ClassMethod GetByCode(code As %String) As DocType
+ClassMethod GetByCode(code As %String) As FHIRTemplate.DataType.CodingBase
 {
     set obj=..%New()
     if code="IMP" {

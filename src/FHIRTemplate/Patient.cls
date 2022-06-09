@@ -60,10 +60,7 @@ XData Template [ MimeType = application/json ]
   "gender": "#(..Gender)#",
   "birthDate": "#(..DOB)#",
   "address": [
-    {
-      "postalCode": "#(..PostalCode)#",
-      "text": "#(..Address)#"
-    }
+    "#(..Address)#"
   ],
   "maritalStatus": "#(..MaritalStatus)#"
 }
@@ -87,15 +84,13 @@ Property DOB As %Date(FORMAT = 3);
 
 Property Gender As %String(DISPLAYLIST = ",male,female", VALUELIST = ",1,2");
 
-Property PostalCode As %String;
-
 /// 医療機関コード
 Property MedInstCode As %String;
 
 /// 患者ID
 Property PatientId As %String;
 
-Property Address As %String;
+Property Address As FHIRTemplate.DataType.Address;
 
 Property MaritalStatus As FHIRTemplate.DataType.CodeableConcept;
 
